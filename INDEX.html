@@ -1,0 +1,4604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BI ACOMPANHAMENTO LG</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --border: #1e2d45;
+    --accent: #00c6ff;
+    --accent2: #0072ff;
+    --red: #ff3b5c;
+    --orange: #ff8c00;
+    --green: #00e676;
+    --yellow: #ffd600;
+    --blue: #4fc3f7;
+    --purple: #b39ddb;
+    --text: #e0e8f5;
+    --muted: #5a6a85;
+    --card-h: 1px solid var(--border);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    font-family: 'Barlow', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(90deg, #0a0e1a 0%, #0d1b35 50%, #0a0e1a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-right { display: flex; align-items: center; gap: 24px; }
+  .clock {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+  .total-badge {
+    background: linear-gradient(135deg, #0072ff22, #00c6ff22);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--accent);
+  }
+  .total-badge span { font-size: 22px; color: #fff; margin-left: 6px; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    padding: 0 32px;
+    background: var(--panel);
+  }
+  .tab {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all .25s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: #00c6ff0a; }
+
+  /* CONTENT */
+  .content { padding: 28px 32px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ===== ABA 1: PAINEL DE STATUS ===== */
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: var(--card-h);
+  }
+
+  /* Cards de status */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .status-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .status-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px #00000055; }
+  .status-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 12px 0 0 12px;
+  }
+  .status-card.red::before { background: var(--red); }
+  .status-card.orange::before { background: var(--orange); }
+  .status-card.green::before { background: var(--green); }
+  .status-card.blue::before { background: var(--blue); }
+  .status-card.yellow::before { background: var(--yellow); }
+  .status-card.purple::before { background: var(--purple); }
+  .status-card.muted::before { background: var(--muted); }
+
+  .status-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .status-card.red .status-icon { background: #ff3b5c18; }
+  .status-card.orange .status-icon { background: #ff8c0018; }
+  .status-card.green .status-icon { background: #00e67618; }
+  .status-card.blue .status-icon { background: #4fc3f718; }
+  .status-card.yellow .status-icon { background: #ffd60018; }
+  .status-card.purple .status-icon { background: #b39ddb18; }
+  .status-card.muted .status-icon { background: #5a6a8518; }
+
+  .status-info { flex: 1; min-width: 0; }
+  .status-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .status-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .status-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .status-card.red .status-count { color: var(--red); }
+  .status-card.orange .status-count { color: var(--orange); }
+  .status-card.green .status-count { color: var(--green); }
+  .status-card.blue .status-count { color: var(--blue); }
+  .status-card.yellow .status-count { color: var(--yellow); }
+  .status-card.purple .status-count { color: var(--purple); }
+  .status-card.muted .status-count { color: var(--muted); }
+
+  /* Barra de progresso total */
+  .summary-bar-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 32px;
+  }
+  .summary-bar-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .summary-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 8px;
+    overflow: hidden;
+    gap: 2px;
+  }
+  .bar-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+    transition: flex .5s;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 2px;
+  }
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 14px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ===== ABA 2: ATRASOS POR TRANSPORTADORA ===== */
+  .transp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .transp-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .transp-header {
+    background: #161f30;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .transp-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .transp-total {
+    background: var(--red);
+    color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    padding: 4px 14px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+  .transp-breakdown {
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #0d1625;
+  }
+  .breakdown-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    flex: 1;
+  }
+  .breakdown-bar-wrap { flex: 1; margin: 0 12px; }
+  .breakdown-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .breakdown-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+  .breakdown-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* ===== ABA 3: CLIENTE/CIDADE EM ATRASO ===== */
+  .filter-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filter-input {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    min-width: 200px;
+  }
+  .filter-input:focus { border-color: var(--accent); }
+  .filter-input::placeholder { color: var(--muted); }
+
+  select.filter-input option { background: var(--panel); }
+
+  .atraso-table-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead tr {
+    background: #161f30;
+  }
+  th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 12px 18px;
+    font-size: 13px;
+    border-bottom: 1px solid #1a2236;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #141e30; }
+  .load-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .pill-carg-sem { background: #ff3b5c22; color: var(--red); border: 1px solid #ff3b5c44; }
+  .pill-carg-pre { background: #ff8c0022; color: var(--orange); border: 1px solid #ff8c0044; }
+  .pill-ent-sem { background: #b39ddb22; color: var(--purple); border: 1px solid #b39ddb44; }
+  .pill-ent-pre { background: #ffd60022; color: var(--yellow); border: 1px solid #ffd60044; }
+
+  .table-count {
+    padding: 10px 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    background: #161f30;
+    border-top: 1px solid var(--border);
+    letter-spacing: 1px;
+  }
+  .table-count span { color: var(--accent); font-weight: 700; }
+
+  /* IMPORT BUTTON */
+  .import-btn {
+    background: linear-gradient(135deg, #00c6ff22, #0072ff22);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 7px 18px;
+    color: var(--accent);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .import-btn:hover { background: linear-gradient(135deg, #00c6ff33, #0072ff33); transform: translateY(-1px); }
+  .import-btn.loading { opacity: .6; pointer-events: none; }
+  #fileInput { display: none; }
+  .last-update { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--muted); letter-spacing: 1px; }
+  .last-update span { color: var(--green); }
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: #1a2a1a; border: 1px solid var(--green); border-radius: 10px;
+    padding: 14px 22px; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600; font-size: 15px; color: var(--green); letter-spacing: 1px;
+    z-index: 9999; transform: translateY(80px); opacity: 0;
+    transition: all .35s cubic-bezier(.34,1.56,.64,1); pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: #2a1a1a; border-color: var(--red); color: var(--red); }
+
+  /* GLOW ANIMADO */
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .6; }
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse-glow 2s infinite;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  /* RESPONSIVO TV */
+  @media (min-width: 1600px) {
+    .status-grid { grid-template-columns: repeat(3, 1fr); }
+    .transp-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .clickable-filter { cursor: pointer; }
+  .clickable-filter:hover { outline: 1px solid var(--accent); }
+
+  .pill-ok { background: #00e67622; color: var(--green); border: 1px solid #00e67655; }
+  .sort-btn {
+    background: #0d1625;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .sort-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sort-btn.active { border-color: var(--green); color: var(--green); background: #00e67618; }
+
+
+  .pill-alerta { background: #ffd60022; color: var(--yellow); border: 1px solid #ffd60055; }
+  th.sortable-th { cursor: pointer; user-select: none; }
+  th.sortable-th:hover { color: var(--accent); }
+  th.sortable-th.active-sort { color: var(--green); }
+
+
+  .header {
+    padding: 10px 22px !important;
+    gap: 18px;
+    flex-wrap: nowrap;
+  }
+  .brand-logos {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  .brand-logo-img {
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(0,198,255,.10));
+  }
+  .brand-logo-lg {
+    height: 42px;
+    max-width: 310px;
+  }
+  .brand-logo-apisul {
+    height: 48px;
+    max-width: 180px;
+  }
+  .header-right {
+    flex: 1;
+    justify-content: flex-end;
+    gap: 12px !important;
+    min-width: 0;
+  }
+  .last-update, .clock, .total-badge, .import-btn {
+    white-space: nowrap;
+  }
+  .clock {
+    font-size: 19px !important;
+  }
+  @media (max-width: 1100px) {
+    .header {
+      flex-wrap: wrap;
+    }
+    .header-right {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+  }
+
+
+  #deliveryMap {
+    background: #0d1625;
+  }
+  .map-popup-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 6px;
+  }
+  .map-popup-line {
+    font-family: 'Barlow', sans-serif;
+    font-size: 12px;
+    color: #222;
+    margin: 3px 0;
+  }
+
+
+  .pill-viagem { background: #4fc3f722; color: var(--blue); border: 1px solid #4fc3f755; }
+  .status-card.dynamic-status-card::before { background: var(--blue); }
+  .status-card.dynamic-status-card .status-icon { background: #4fc3f718; }
+  .status-card.dynamic-status-card .status-count { color: var(--blue); }
+  .status-card.dynamic-status-card.ok-card::before { background: var(--green); }
+  .status-card.dynamic-status-card.ok-card .status-icon { background: #00e67618; }
+  .status-card.dynamic-status-card.ok-card .status-count { color: var(--green); }
+  .status-card.dynamic-status-card.warning-card::before { background: var(--yellow); }
+  .status-card.dynamic-status-card.warning-card .status-icon { background: #ffd60018; }
+  .status-card.dynamic-status-card.warning-card .status-count { color: var(--yellow); }
+  .status-card.dynamic-status-card.red-card::before { background: var(--red); }
+  .status-card.dynamic-status-card.red-card .status-icon { background: #ff3b5c18; }
+  .status-card.dynamic-status-card.red-card .status-count { color: var(--red); }
+
+
+  .location-link {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .distance-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    color: var(--green);
+    white-space: nowrap;
+  }
+
+
+  #mapCount {
+    margin-top: 12px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: rgba(8,20,40,.75);
+    border: 1px solid rgba(0,198,255,.18);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    color: #dbe7ff;
+    line-height: 1.5;
+  }
+
+  #mapCount span {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+
+  #mapCount {
+    margin-top: 16px;
+    padding: 18px 22px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(8,20,40,.95), rgba(6,15,30,.92));
+    border: 1px solid rgba(0,198,255,.22);
+    box-shadow: 0 0 18px rgba(0,198,255,.08);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    color: #f4f8ff;
+    line-height: 1.8;
+  }
+
+  .map-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+    gap: 12px;
+  }
+
+  .map-info-item {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+
+  .map-info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: #7fa6d9;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
+  .map-info-value {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 800;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  .map-info-highlight {
+    color: var(--accent);
+  }
+
+  .map-info-green {
+    color: var(--green);
+  }
+
+  .map-info-yellow {
+    color: var(--yellow);
+  }
+
+
+  .distance-click {
+    color: var(--accent);
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: .04em;
+  }
+
+  .distance-click:hover {
+    color: #ffffff;
+  }
+
+
+  .bar-seg.clickable-filter {
+    cursor: pointer;
+  }
+  .bar-seg.clickable-filter:hover {
+    filter: brightness(1.18);
+    outline: 1px solid rgba(255,255,255,.35);
+  }
+
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand-logos">
+    <img class="brand-logo-img brand-logo-apisul" src="data:image/png;base64,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" alt="Grupo Apisul">
+    <img class="brand-logo-img brand-logo-lg" src="data:image/png;base64,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" alt="LG Electronics">
+  </div>
+  <div class="header-right">
+    <div class="last-update" id="lastUpdate">Última atualização: <span>dados iniciais</span></div>
+    <div class="total-badge"><span class="live-dot"></span>TOTAL LOADS <span id="totalLoads">0</span></div>
+    <button class="import-btn" onclick="document.getElementById('fileInput').click()" id="importBtn">
+      ⬆ Atualizar Dados (.xlsx)
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(event)">
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('painel')">📊 HOME</div>
+  <div class="tab" onclick="switchTab('transportadora')">🚚 Atrasos por Transportadora</div>
+  <div class="tab" onclick="switchTab('clientes')">📍 Status Cliente</div>
+  <div class="tab" onclick="switchTab('mapa')">🗺️ Mapa de Entregas</div>
+</div>
+
+<div class="content">
+
+  <!-- ABA 1 -->
+  <div class="tab-panel active" id="tab-painel">
+    <div class="section-title">Distribuição por Status — 110 Loads monitorados</div>
+
+    <div class="summary-bar-wrap">
+      <div class="summary-bar-label">Composição Geral dos Loads</div>
+      <div class="summary-bar">
+        <div class="bar-seg" style="flex:40;background:var(--red);">40</div>
+        <div class="bar-seg" style="flex:31;background:var(--green);">31</div>
+        <div class="bar-seg" style="flex:12;background:var(--blue);">12</div>
+        <div class="bar-seg" style="flex:8;background:var(--orange);">8</div>
+        <div class="bar-seg" style="flex:6;background:var(--purple);">6</div>
+        <div class="bar-seg" style="flex:5;background:var(--yellow);">5</div>
+        <div class="bar-seg" style="flex:4;background:#607d8b;">4</div>
+        <div class="bar-seg" style="flex:4;background:var(--muted);">4</div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Atrasado Carregamento SEM SMP (40)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>OK - No Prazo (31)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Na CLIF c/ SMP (12)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Na PENSKE (9)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Atrasado Entrega (8)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Carregado (4)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#607d8b"></div>Verificar SMP (3)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--muted)"></div>Outros (3)</div>
+      </div>
+    </div>
+
+    <div class="status-grid">
+
+      <div class="status-card red">
+        <div class="status-icon">🚨</div>
+        <div class="status-info">
+          <div class="status-label">Crítico</div>
+          <div class="status-name">Atrasado Carregamento<br><small style="color:var(--muted);font-size:13px">Sem SMP</small></div>
+        </div>
+        <div class="status-count">40</div>
+      </div>
+
+      <div class="status-card green">
+        <div class="status-icon">✅</div>
+        <div class="status-info">
+          <div class="status-label">Normal</div>
+          <div class="status-name">OK - No Prazo</div>
+        </div>
+        <div class="status-count">31</div>
+      </div>
+
+      <div class="status-card blue">
+        <div class="status-icon">🏭</div>
+        <div class="status-info">
+          <div class="status-label">Aguardando Saída</div>
+          <div class="status-name">Na CLIF — Com SMP<br><small style="color:var(--muted);font-size:13px">Aguardando Saída</small></div>
+        </div>
+        <div class="status-count">12</div>
+      </div>
+
+      <div class="status-card purple">
+        <div class="status-icon">⚠️</div>
+        <div class="status-info">
+          <div class="status-label">Entrega</div>
+          <div class="status-name">Atrasado Entrega<br><small style="color:var(--muted);font-size:13px">Sem SMP</small></div>
+        </div>
+        <div class="status-count">6</div>
+      </div>
+
+      <div class="status-card orange">
+        <div class="status-icon">🅿️</div>
+        <div class="status-info">
+          <div class="status-label">Aguardando Saída</div>
+          <div class="status-name">Na PENSKE — Pré-SMP<br><small style="color:var(--muted);font-size:13px">Aguardando Saída</small></div>
+        </div>
+        <div class="status-count">5</div>
+      </div>
+
+      <div class="status-card red">
+        <div class="status-icon">📦</div>
+        <div class="status-info">
+          <div class="status-label">Carregamento</div>
+          <div class="status-name">Atrasado Carregamento<br><small style="color:var(--muted);font-size:13px">Pré-SMP</small></div>
+        </div>
+        <div class="status-count">3</div>
+      </div>
+
+      <div class="status-card orange">
+        <div class="status-icon">🅿️</div>
+        <div class="status-info">
+          <div class="status-label">Aguardando Saída</div>
+          <div class="status-name">Na PENSKE — Com SMP<br><small style="color:var(--muted);font-size:13px">Aguardando Saída</small></div>
+        </div>
+        <div class="status-count">3</div>
+      </div>
+
+      <div class="status-card yellow">
+        <div class="status-icon">🔵</div>
+        <div class="status-info">
+          <div class="status-label">Concluído</div>
+          <div class="status-name">Carregado — Sem SMP</div>
+        </div>
+        <div class="status-count">2</div>
+      </div>
+
+      <div class="status-card yellow">
+        <div class="status-icon">🔵</div>
+        <div class="status-info">
+          <div class="status-label">Concluído</div>
+          <div class="status-name">Carregado — Pré-SMP</div>
+        </div>
+        <div class="status-count">2</div>
+      </div>
+
+      <div class="status-card purple">
+        <div class="status-icon">⚠️</div>
+        <div class="status-info">
+          <div class="status-label">Entrega</div>
+          <div class="status-name">Atrasado Entrega<br><small style="color:var(--muted);font-size:13px">Pré-SMP</small></div>
+        </div>
+        <div class="status-count">2</div>
+      </div>
+
+      <div class="status-card muted">
+        <div class="status-icon">🔍</div>
+        <div class="status-info">
+          <div class="status-label">Ação Necessária</div>
+          <div class="status-name">Verificar SMP Em Andamento</div>
+        </div>
+        <div class="status-count">2</div>
+      </div>
+
+      <div class="status-card green">
+        <div class="status-icon">📅</div>
+        <div class="status-info">
+          <div class="status-label">Verificar</div>
+          <div class="status-name">OK No Prazo<br><small style="color:var(--muted);font-size:13px">Verificar Agendamento</small></div>
+        </div>
+        <div class="status-count">1</div>
+      </div>
+
+      <div class="status-card orange">
+        <div class="status-icon">🅿️</div>
+        <div class="status-info">
+          <div class="status-label">Aguardando Carregamento</div>
+          <div class="status-name">Na PENSKE — Pré-SMP<br><small style="color:var(--muted);font-size:13px">Aguardando Carregamento</small></div>
+        </div>
+        <div class="status-count">1</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ABA 2 -->
+  <div class="tab-panel" id="tab-transportadora">
+    <div class="section-title">Atrasos por Transportadora — 51 loads em atraso</div>
+    <div class="transp-grid" id="transpGrid"></div>
+  </div>
+
+  <!-- ABA 3 -->
+  <div class="tab-panel" id="tab-clientes">
+    <div class="section-title">Clientes &amp; Cidades — Detalhamento</div>
+    <div class="filter-row">
+      <input class="filter-input" type="text" id="filterLoad" placeholder="🔎 Filtrar por Load..." oninput="renderTable()">
+      <input class="filter-input" type="text" id="filterCliente" placeholder="🔍 Filtrar por cliente..." oninput="renderTable()">
+      <input class="filter-input" type="text" id="filterCidade" placeholder="🏙️ Filtrar por cidade..." oninput="renderTable()">
+
+      <select class="filter-input" id="filterStatus" onchange="renderTable()">
+        <option value="">Todos os status</option>
+      </select>
+
+      <select class="filter-input" id="filterInicio" onchange="renderTable()">
+        <option value="">Todas as datas limite de início da viagem</option>
+      </select>
+
+      <select class="filter-input" id="filterJanela" onchange="renderTable()">
+        <option value="">Todas as janelas de carregamento</option>
+      </select>
+
+      <select class="filter-input" id="filterEntrega" onchange="renderTable()">
+        <option value="">Todas as datas de entrega</option>
+      </select>
+
+      <select class="filter-input" id="filterTransp" onchange="renderTable()">
+        <option value="">Todas as transportadoras</option>
+      </select>
+
+      <button class="import-btn" onclick="limparFiltrosClientes()">Limpar filtros</button>
+    </div>
+    <div class="atraso-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable-th" onclick="sortTableByHeader('load')">LOAD</th>
+            <th class="sortable-th" onclick="sortTableByHeader('status')">STATUS</th>
+            <th class="sortable-th" onclick="sortTableByHeader('transportadora')">TRANSPORTADORA</th>
+            <th class="sortable-th" onclick="sortTableByHeader('cliente')">CLIENTE</th>
+            <th class="sortable-th" onclick="sortTableByHeader('cidade')">CIDADE</th>
+            <th class="sortable-th" onclick="sortTableByHeader('inicio')">DATA LIMITE DE INÍCIO DA VIAGEM</th>
+            <th class="sortable-th" onclick="sortTableByHeader('janela')">JANELA CARREGAMENTO</th>
+            <th class="sortable-th" onclick="sortTableByHeader('entrega')">DATA ENTREGA</th>
+          
+            <th>LOCALIZAÇÃO DO VEÍCULO</th>
+            <th>PLACA</th>
+            <th>DISTÂNCIA ATÉ CLIENTE</th></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="table-count" id="tableCount"></div>
+    </div>
+  </div>
+
+  <!-- ABA 4 -->
+  <div class="tab-panel" id="tab-mapa">
+    <div class="section-title">Mapa de Entregas — localização do veículo</div>
+
+    <div class="table-count" id="mapCount">Clique em uma localização do veículo na tabela para visualizar no mapa.</div>
+
+    <div class="atraso-table-wrap" style="height:620px; position:relative;">
+      <div id="deliveryMap" style="height:100%; width:100%; border-radius:12px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== FILE IMPORT =====
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const btn = document.getElementById('importBtn');
+  btn.classList.add('loading');
+  btn.textContent = '⏳ Processando...';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+
+      if (!rows.length) { showToast('Planilha vazia ou formato inválido', true); return; }
+
+      // Map columns — detect by header content
+      const firstKey = Object.keys(rows[0]);
+      const colLoad = firstKey[0];
+      const colStatus = firstKey[1];
+      const colTransp = firstKey[2];
+      const colEntrega = firstKey[6];
+      const colCliente = firstKey[7];
+      const colDestino = firstKey[8];
+
+      function cleanCliente(s) {
+        return String(s).replace(/\s*-\s*\d{5,8}.*/,'').trim();
+      }
+      function cleanCidade(s) {
+        const p = String(s).split('/');
+        return p[0].trim();
+      }
+      function fmtDate(v) {
+        if (!v) return '';
+        if (v instanceof Date) {
+          const d = v.getDate().toString().padStart(2,'0');
+          const m = (v.getMonth()+1).toString().padStart(2,'0');
+          return `${d}/${m}/${v.getFullYear()}`;
+        }
+        return String(v).substring(0,10);
+      }
+
+      // Rebuild atrasoData
+      const newAtraso = [];
+      const newTranspMap = {};
+      let total = 0;
+      const newStatusCounts = {};
+
+      rows.forEach(r => {
+        const status = String(r[colStatus]||'').trim();
+        if (!status) return;
+        total++;
+        newStatusCounts[status] = (newStatusCounts[status]||0) + 1;
+
+        if (status.startsWith('ATRASADO')) {
+          const transp = String(r[colTransp]||'').trim();
+          newAtraso.push({
+            load: String(r[colLoad]||''),
+            status,
+            transportadora: transp,
+            cliente: cleanCliente(r[colCliente]||''),
+            cidade: cleanCidade(r[colDestino]||''),
+            entrega: fmtDate(r[colEntrega])
+          });
+          if (!newTranspMap[transp]) newTranspMap[transp] = {};
+          newTranspMap[transp][status] = (newTranspMap[transp][status]||0) + 1;
+        }
+      });
+
+      // Update global data
+      atrasoData.length = 0;
+      newAtraso.forEach(d => atrasoData.push(d));
+
+      transpData.length = 0;
+      Object.entries(newTranspMap).forEach(([t, statuses]) => {
+        transpData.push({t, rows: Object.entries(statuses).map(([s,q])=>({s,q}))});
+      });
+
+      // Update status cards
+      updateStatusCards(newStatusCounts, total);
+
+      // Update total
+      document.getElementById('totalLoads').textContent = total;
+
+      // Refresh UI
+      buildTranspGrid();
+      populateTranspFilter();
+      renderTable();
+
+      // Last update time
+      const now = new Date();
+      const hm = now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('lastUpdate').innerHTML = `Última atualização: <span>${hm}</span>`;
+
+      showToast(`✅ ${total} loads carregados com sucesso!`);
+    } catch(err) {
+      showToast('Erro ao ler o arquivo: ' + err.message, true);
+      console.error(err);
+    } finally {
+      btn.classList.remove('loading');
+      btn.innerHTML = '⬆ Atualizar Dados (.xlsx)';
+      event.target.value = '';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function updateStatusCards(counts, total) {
+  // Map status -> card index (order in DOM)
+  const ORDER = [
+    "ATRASADO CARREGAMENTO - SEM SMP",
+    "OK - NO PRAZO",
+    "NA CLIF - COM SMP - AGUARDANDO SAÍDA",
+    "ATRASADO ENTREGA - SEM SMP",
+    "NA PENSKE - PRÉ-SMP - AGUARDANDO SAÍDA",
+    "ATRASADO CARREGAMENTO - PRÉ-SMP",
+    "NA PENSKE - COM SMP - AGUARDANDO SAÍDA",
+    "CARREGADO - SEM SMP",
+    "CARREGADO - PRÉ-SMP",
+    "ATRASADO ENTREGA - PRÉ-SMP",
+    "VERIFICAR SMP EM ANDAMENTO",
+    "OK NO PRAZO - VERIFICAR AGENDAMENTO",
+    "NA PENSKE - PRÉ-SMP - AGUARDANDO CARREGAMENTO",
+  ];
+  const cards = document.querySelectorAll('.status-count');
+  ORDER.forEach((s, i) => {
+    if (cards[i]) cards[i].textContent = counts[s] || 0;
+  });
+
+  // Update summary bar segments
+  const segs = document.querySelectorAll('.bar-seg');
+  const barKeys = [
+    "ATRASADO CARREGAMENTO - SEM SMP",
+    "OK - NO PRAZO",
+    "NA CLIF - COM SMP - AGUARDANDO SAÍDA",
+    null, // combined penske+others
+    null, // atraso entrega group
+    null,
+    null,
+    null,
+  ];
+  // Simplified: just update the flex values of bar segments
+  const barValues = [
+    counts["ATRASADO CARREGAMENTO - SEM SMP"]||0,
+    counts["OK - NO PRAZO"]||0,
+    counts["NA CLIF - COM SMP - AGUARDANDO SAÍDA"]||0,
+    (counts["NA PENSKE - PRÉ-SMP - AGUARDANDO SAÍDA"]||0)+(counts["NA PENSKE - COM SMP - AGUARDANDO SAÍDA"]||0)+(counts["NA PENSKE - PRÉ-SMP - AGUARDANDO CARREGAMENTO"]||0),
+    (counts["ATRASADO ENTREGA - SEM SMP"]||0)+(counts["ATRASADO ENTREGA - PRÉ-SMP"]||0),
+    (counts["CARREGADO - SEM SMP"]||0)+(counts["CARREGADO - PRÉ-SMP"]||0),
+    counts["VERIFICAR SMP EM ANDAMENTO"]||0,
+    counts["ATRASADO CARREGAMENTO - PRÉ-SMP"]||0,
+  ];
+  segs.forEach((seg,i) => {
+    if (barValues[i] !== undefined) {
+      seg.style.flex = barValues[i];
+      seg.textContent = barValues[i] || '';
+    }
+  });
+}
+
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError?' error':'');
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// DATA
+const transpData = [
+  {t:"BENDINI LOGI", rows:[{s:"ATRASADO ENTREGA - SEM SMP",q:3}]},
+  {t:"LTA SOLUCOES", rows:[{s:"ATRASADO CARREGAMENTO - SEM SMP",q:1}]},
+  {t:"LX PANTOS", rows:[{s:"ATRASADO CARREGAMENTO - SEM SMP",q:1}]},
+  {t:"MINAS SUL", rows:[{s:"ATRASADO CARREGAMENTO - SEM SMP",q:1}]},
+  {t:"RODOBRAS TR", rows:[{s:"ATRASADO CARREGAMENTO - SEM SMP",q:5},{s:"ATRASADO ENTREGA - SEM SMP",q:2}]},
+  {t:"TR RAMTHUN", rows:[{s:"ATRASADO CARREGAMENTO - SEM SMP",q:3}]},
+  {t:"TRANSBOCAYUV", rows:[{s:"ATRASADO CARREGAMENTO - PRÉ-SMP",q:2},{s:"ATRASADO CARREGAMENTO - SEM SMP",q:11}]},
+  {t:"TRANSKING", rows:[{s:"ATRASADO CARREGAMENTO - SEM SMP",q:4}]},
+  {t:"TRANSP RODOWAY LTDA", rows:[{s:"ATRASADO CARREGAMENTO - PRÉ-SMP",q:1},{s:"ATRASADO CARREGAMENTO - SEM SMP",q:3}]},
+  {t:"VIPE TRANSPO", rows:[{s:"ATRASADO ENTREGA - PRÉ-SMP",q:2},{s:"ATRASADO ENTREGA - SEM SMP",q:1}]},
+  {t:"WSC", rows:[{s:"ATRASADO CARREGAMENTO - SEM SMP",q:11}]},
+];
+
+const atrasoData = [
+  {load:"6011820",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"FERREIRA COSTA & CIA LTDA",cidade:"ALHANDRA",entrega:"22/05/2026"},
+  {load:"6011813",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"FERREIRA COSTA & CIA LTDA",cidade:"ALHANDRA",entrega:"21/05/2026"},
+  {load:"6022260",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"MAGAZINE LUIZA S/A (CD0991)",cidade:"ALHANDRA",entrega:"22/05/2026"},
+  {load:"6011290",status:"ATRASADO ENTREGA - SEM SMP",transportadora:"BENDINI LOGI",cliente:"HAVAN LOJAS DE DEPARTAMENTOS LTDA",cidade:"BARRA VELHA",entrega:"26/05/2026"},
+  {load:"6022253",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"MAGAZINE LUIZA S/A (CD2650)",cidade:"BENEVIDES",entrega:"29/05/2026"},
+  {load:"6022251",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"MAGAZINE LUIZA S/A (CD2650)",cidade:"BENEVIDES",entrega:"27/05/2026"},
+  {load:"6021659",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"RODOBRAS TR",cliente:"EUGENIO RAULINO KOERICH S/A COM IND",cidade:"BIGUACU",entrega:"19/05/2026"},
+  {load:"6010993",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSKING",cliente:"CARREFOUR- DF",cidade:"BRASILIA",entrega:"20/05/2026"},
+  {load:"6014921",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"WMB SUPERMERCADOS DO BRASIL LTDA.",cidade:"BRASILIA",entrega:"20/05/2026"},
+  {load:"6014898",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSKING",cliente:"ARMAZEM MATEUS S.A",cidade:"CABO DE SANTO AGOSTINHO",entrega:"21/05/2026"},
+  {load:"6022209",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1887)",cidade:"CABO DE SANTO AGOSTINHO",entrega:"21/05/2026"},
+  {load:"6014913",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TR RAMTHUN",cliente:"WMB SUPERMERCADOS DOBRASIL LTDA (SAM'S)",cidade:"CAJAMAR",entrega:"19/05/2026"},
+  {load:"6025088",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"RODOBRAS TR",cliente:"PENSKE LOGISTICS DO BRASIL LTDA.",cidade:"CAJAMAR",entrega:"19/05/2026"},
+  {load:"6025087",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"RODOBRAS TR",cliente:"PENSKE LOGISTICS DO BRASIL LTDA.",cidade:"CAJAMAR",entrega:"19/05/2026"},
+  {load:"6022208",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"LX PANTOS",cliente:"GRUPO CASAS BAHIA S.A(CD1400)",cidade:"CAMACARI",entrega:"21/05/2026"},
+  {load:"6022207",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1400)",cidade:"CAMACARI",entrega:"21/05/2026"},
+  {load:"6022206",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1400)",cidade:"CAMACARI",entrega:"21/05/2026"},
+  {load:"6012702",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"MAGAZINE LUIZA S/A (CD1500)",cidade:"CANDEIAS",entrega:"28/05/2026"},
+  {load:"6022339",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSP RODOWAY LTDA",cliente:"LOJAS BECKER LTDA",cidade:"CERRO LARGO",entrega:"18/05/2026"},
+  {load:"6022222",status:"ATRASADO ENTREGA - SEM SMP",transportadora:"VIPE TRANSPO",cliente:"GRUPO CASAS BAHIA S.A(CD1760)",cidade:"CONTAGEM",entrega:"19/05/2026"},
+  {load:"6022223",status:"ATRASADO ENTREGA - PRÉ-SMP",transportadora:"VIPE TRANSPO",cliente:"GRUPO CASAS BAHIA S.A(CD1760)",cidade:"CONTAGEM",entrega:"19/05/2026"},
+  {load:"6012705",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"MAGAZINE LUIZA S/A (CD1800)",cidade:"CUIABA",entrega:"26/05/2026"},
+  {load:"6023296",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSP RODOWAY LTDA",cliente:"LOJAS COLOMBO S/A COM UTILIDADES DOMESTICAS",cidade:"CURITIBA",entrega:"18/05/2026"},
+  {load:"6022159",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1401)",cidade:"DUQUE DE CAXIAS",entrega:"18/05/2026"},
+  {load:"6022158",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1401)",cidade:"DUQUE DE CAXIAS",entrega:"18/05/2026"},
+  {load:"6023014",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1401)",cidade:"DUQUE DE CAXIAS",entrega:"22/05/2026"},
+  {load:"6022227",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"CARREFOUR COMERCIO E INDUSTRIA LTDA",cidade:"DUQUE DE CAXIAS",entrega:"22/05/2026"},
+  {load:"6022061",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"FUJIOKA ELETRO IMAGEM S/A",cidade:"GOIANIA",entrega:"18/05/2026"},
+  {load:"6022060",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"FUJIOKA ELETRO IMAGEM S/A",cidade:"GOIANIA",entrega:"18/05/2026"},
+  {load:"6014907",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSKING",cliente:"GAZIN ATACADO CENTRO-OESTE LTD",cidade:"IPAMERI",entrega:"19/05/2026"},
+  {load:"6023026",status:"ATRASADO ENTREGA - SEM SMP",transportadora:"RODOBRAS TR",cliente:"GRUPO CASAS BAHIA S.A(CD1624)",cidade:"ITAJAI",entrega:"20/05/2026"},
+  {load:"6022205",status:"ATRASADO ENTREGA - SEM SMP",transportadora:"BENDINI LOGI",cliente:"GRUPO CASAS BAHIA S.A(CD1624)",cidade:"ITAJAI",entrega:"18/05/2026"},
+  {load:"6014918",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"WMB SUPERMERCADOS DOBRASIL LTDA (SAM'S)",cidade:"JABOATAO DOS GUARARAPES",entrega:"21/05/2026"},
+  {load:"6022044",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"LTA SOLUCOES",cliente:"GRUPO CASAS BAHIA S.A(CD1200)",cidade:"JUNDIAI",entrega:"18/05/2026"},
+  {load:"6023021",status:"ATRASADO ENTREGA - SEM SMP",transportadora:"RODOBRAS TR",cliente:"GRUPO CASAS BAHIA S.A(CD1200)",cidade:"JUNDIAI",entrega:"20/05/2026"},
+  {load:"6022184",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1200)",cidade:"JUNDIAI",entrega:"18/05/2026"},
+  {load:"6022053",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TR RAMTHUN",cliente:"GRUPO CASAS BAHIA S.A(CD1200)",cidade:"JUNDIAI",entrega:"18/05/2026"},
+  {load:"6022204",status:"ATRASADO CARREGAMENTO - PRÉ-SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1200)",cidade:"JUNDIAI",entrega:"18/05/2026"},
+  {load:"6022201",status:"ATRASADO CARREGAMENTO - PRÉ-SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1200)",cidade:"JUNDIAI",entrega:"18/05/2026"},
+  {load:"6012709",status:"ATRASADO CARREGAMENTO - PRÉ-SMP",transportadora:"TRANSP RODOWAY LTDA",cliente:"MAGAZINE LUIZA S/A (CD0094)",cidade:"LONDRINA",entrega:"27/05/2026"},
+  {load:"6012708",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"RODOBRAS TR",cliente:"MAGAZINE LUIZA S/A (CD0300)",cidade:"LOUVEIRA",entrega:"18/05/2026"},
+  {load:"6007335",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"DOMESTILAR LTDA",cidade:"MACAPA",entrega:"27/05/2026"},
+  {load:"6011532",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"WSC",cliente:"MAGAZINE LUIZA S/A (CD0994)",cidade:"MARACANAU",entrega:"26/05/2026"},
+  {load:"6023297",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSP RODOWAY LTDA",cliente:"LOJAS COLOMBO SA COMERCIO DE UTILIDADES DOMESTICAS",cidade:"NOVA SANTA RITA",entrega:"19/05/2026"},
+  {load:"6011002",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TR RAMTHUN",cliente:"CARREFOUR COM IND LTDA",cidade:"OSASCO",entrega:"19/05/2026"},
+  {load:"6015357",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"MINAS SUL",cliente:"CARREFOUR COM IND LTDA",cidade:"OSASCO",entrega:"17/05/2026"},
+  {load:"6011535",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"RODOBRAS TR",cliente:"MAGAZINE LUIZA S/A (CD0050)",cidade:"RIBEIRAO PRETO",entrega:"19/05/2026"},
+  {load:"6022175",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSBOCAYUV",cliente:"GRUPO CASAS BAHIA S.A(CD1500)",cidade:"SAO BERNARDO DO CAMPO",entrega:"17/05/2026"},
+  {load:"6022218",status:"ATRASADO ENTREGA - SEM SMP",transportadora:"BENDINI LOGI",cliente:"GRUPO CASAS BAHIA S.A(CD1475)",cidade:"SAO JOSE DOS PINHAIS",entrega:"18/05/2026"},
+  {load:"6023431",status:"ATRASADO ENTREGA - PRÉ-SMP",transportadora:"VIPE TRANSPO",cliente:"DAYCOVAL LEASING",cidade:"SAO PAULO",entrega:"16/05/2026"},
+  {load:"6020708",status:"ATRASADO CARREGAMENTO - SEM SMP",transportadora:"TRANSKING",cliente:"LOJAS QUERO QUERO SA",cidade:"SAPIRANGA",entrega:"20/05/2026"},
+];
+
+// STATUS COLORS
+const STATUS_CONFIG = {
+  "OK - NO PRAZO": {cls:"pill-ok", short:"OK - NO PRAZO"},
+  "OK NO PRAZO": {cls:"pill-ok", short:"OK NO PRAZO"},
+  "OK NO PRAZO - VERIFICAR AGENDAMENTO": {cls:"pill-ok", short:"OK - VERIFICAR AGENDAMENTO"},
+  "ATRASADO CARREGAMENTO - SEM SMP": {cls:"pill-carg-sem", short:"ATRASO CARG. SEM SMP"},
+  "ATRASADO CARREGAMENTO - PRÉ-SMP": {cls:"pill-carg-pre", short:"ATRASO CARG. PRÉ-SMP"},
+  "ATRASADO ENTREGA - SEM SMP": {cls:"pill-ent-sem", short:"ATRASO ENTREGA SEM SMP"},
+  "ATRASADO ENTREGA - PRÉ-SMP": {cls:"pill-ent-pre", short:"ATRASO ENTREGA PRÉ-SMP"},
+};
+const TRANSP_COLORS = {
+  "ATRASADO CARREGAMENTO - SEM SMP": {fill:"var(--red)", max:11},
+  "ATRASADO CARREGAMENTO - PRÉ-SMP": {fill:"var(--orange)", max:11},
+  "ATRASADO ENTREGA - SEM SMP": {fill:"var(--purple)", max:11},
+  "ATRASADO ENTREGA - PRÉ-SMP": {fill:"var(--yellow)", max:11},
+};
+
+// BUILD TRANSP GRID
+function buildTranspGrid() {
+  const maxTotal = Math.max(...transpData.map(t => t.rows.reduce((a,r)=>a+r.q,0)));
+  const grid = document.getElementById('transpGrid');
+  grid.innerHTML = transpData
+    .sort((a,b) => b.rows.reduce((s,r)=>s+r.q,0) - a.rows.reduce((s,r)=>s+r.q,0))
+    .map(t => {
+      const total = t.rows.reduce((s,r)=>s+r.q,0);
+      const rows = t.rows.map(r => {
+        const pct = Math.round(r.q / 11 * 100);
+        const cfg = TRANSP_COLORS[r.s] || {fill:'var(--muted)'};
+        const sc = STATUS_CONFIG[r.s] || {short: r.s};
+        const countColor = cfg.fill;
+        return `<div class="breakdown-row">
+          <div class="breakdown-label">${sc.short}</div>
+          <div class="breakdown-bar-wrap"><div class="breakdown-bar">
+            <div class="breakdown-fill" style="width:${pct}%;background:${cfg.fill}"></div>
+          </div></div>
+          <div class="breakdown-count" style="color:${countColor}">${r.q}</div>
+        </div>`;
+      }).join('');
+      return `<div class="transp-card">
+        <div class="transp-header">
+          <div class="transp-name">${t.t}</div>
+          <div class="transp-total">${total}</div>
+        </div>
+        <div class="transp-breakdown">${rows}</div>
+      </div>`;
+    }).join('');
+}
+
+// POPULATE FILTER
+function populateTranspFilter() {
+  const sel = document.getElementById('filterTransp');
+  const transportadoras = [...new Set(atrasoData.map(d=>d.transportadora))].sort();
+  transportadoras.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t;
+    sel.appendChild(o);
+  });
+}
+
+// RENDER TABLE
+function renderTable() {
+  const fc = document.getElementById('filterCliente').value.toLowerCase();
+  const fci = document.getElementById('filterCidade').value.toLowerCase();
+  const fs = document.getElementById('filterStatus').value;
+  const ft = document.getElementById('filterTransp').value;
+
+  const filtered = atrasoData.filter(d =>
+    (!fc || d.cliente.toLowerCase().includes(fc)) &&
+    (!fci || d.cidade.toLowerCase().includes(fci)) &&
+    (!fs || d.status === fs) &&
+    (!ft || d.transportadora === ft)
+  );
+
+  const body = document.getElementById('tableBody');
+  body.innerHTML = filtered.map(d => {
+    const cfg = STATUS_CONFIG[d.status] || {cls:'pill-carg-sem', short: d.status};
+    return `<tr>
+      <td><span class="load-badge">${d.load}</span></td>
+      <td><span class="status-pill ${cfg.cls}">${cfg.short}</span></td>
+      <td style="font-weight:600;font-size:13px">${d.transportadora}</td>
+      <td style="font-size:13px">${d.cliente}</td>
+      <td style="font-weight:600;font-size:13px;color:var(--accent)">${d.cidade}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow)">${d.entrega}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tableCount').innerHTML = `Exibindo <span>${filtered.length}</span> de <span>${atrasoData.length}</span> registros em atraso`;
+}
+
+// TABS
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids = ['painel','transportadora','clientes'];
+    t.classList.toggle('active', ids[i]===tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.classList.toggle('active', p.id==='tab-'+tab);
+  });
+}
+
+// CLOCK
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== AUTO REFRESH — lê o Excel da mesma pasta (sincronizado pelo OneDrive) =====
+const LOCAL_FILE = 'https://m365x347-my.sharepoint.com/:x:/r/personal/edycarlos_galvao_apisul_com_br/Documents/LOGISTICO/Atualiza%C3%A7%C3%A3o%20BI/ACOMPANHAMENTO%20LG.xlsx?d=w0c6f1ecd542f4b1eae616c46088626fb&csf=1&download=1&e=uXJdRo';
+const REFRESH_INTERVAL_MS = 60 * 60 * 1000; // 1 hora
+
+function processWorkbook(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+  if (!rows.length) throw new Error('Planilha vazia');
+
+  const firstKey = Object.keys(rows[0]);
+  const colLoad=firstKey[0], colStatus=firstKey[1], colTransp=firstKey[2],
+        colEntrega=firstKey[6], colCliente=firstKey[7], colDestino=firstKey[8];
+
+  function cleanCliente(s){ return String(s).replace(/\s*-\s*\d{5,8}.*/,'').trim(); }
+  function cleanCidade(s){ return String(s).split('/')[0].trim(); }
+  function fmtDate(v){
+    if(!v) return '';
+    if(v instanceof Date){
+      return v.getDate().toString().padStart(2,'0')+'/'+
+             (v.getMonth()+1).toString().padStart(2,'0')+'/'+v.getFullYear();
+    }
+    return String(v).substring(0,10);
+  }
+
+  const newAtraso=[], newTranspMap={}, newStatusCounts={};
+  let total=0;
+
+  rows.forEach(r=>{
+    const status=String(r[colStatus]||'').trim();
+    if(!status) return;
+    total++;
+    newStatusCounts[status]=(newStatusCounts[status]||0)+1;
+    if(status.startsWith('ATRASADO')){
+      const transp=String(r[colTransp]||'').trim();
+      newAtraso.push({
+        load:String(r[colLoad]||''), status, transportadora:transp,
+        cliente:cleanCliente(r[colCliente]||''),
+        cidade:cleanCidade(r[colDestino]||''),
+        entrega:fmtDate(r[colEntrega])
+      });
+      if(!newTranspMap[transp]) newTranspMap[transp]={};
+      newTranspMap[transp][status]=(newTranspMap[transp][status]||0)+1;
+    }
+  });
+
+  atrasoData.length=0; newAtraso.forEach(d=>atrasoData.push(d));
+  transpData.length=0;
+  Object.entries(newTranspMap).forEach(([t,statuses])=>{
+    transpData.push({t, rows:Object.entries(statuses).map(([s,q])=>({s,q}))});
+  });
+
+  updateStatusCards(newStatusCounts, total);
+  document.getElementById('totalLoads').textContent=total;
+
+  // Atualiza título da aba 2
+  const t2 = document.querySelector('#tab-transportadora .section-title');
+  const totalAtraso = newAtraso.length;
+  if(t2) t2.textContent = `Atrasos por Transportadora — ${totalAtraso} loads em atraso`;
+
+  buildTranspGrid();
+  populateTranspFilter();
+  renderTable();
+
+  const now=new Date();
+  const hm=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('lastUpdate').innerHTML=`Última atualização: <span>${hm}</span>`;
+}
+
+function fetchLocalFile() {
+  const btn=document.getElementById('importBtn');
+  btn.classList.add('loading');
+  btn.innerHTML='⏳ Atualizando...';
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', LOCAL_FILE, true);
+  xhr.responseType = 'arraybuffer';
+  xhr.onload = function() {
+    try {
+      processWorkbook(xhr.response);
+      showToast('✅ Dados atualizados automaticamente!');
+    } catch(e) {
+      showToast('Erro ao processar arquivo: ' + e.message, true);
+    } finally {
+      btn.classList.remove('loading');
+      btn.innerHTML='⬆ Atualizar Dados (.xlsx)';
+    }
+  };
+  xhr.onerror = function() {
+    if (btn) {
+      btn.classList.remove('loading');
+      btn.innerHTML = '⬆ Atualizar Dados (.xlsx)';
+    }
+  };
+  xhr.send();
+}
+
+// INIT — carrega ao abrir e agenda refresh a cada 1h
+(function init(){
+  buildTranspGrid();
+  populateTranspFilter();
+  renderTable();
+  fetchLocalFile();
+  setInterval(fetchLocalFile, REFRESH_INTERVAL_MS);
+})();
+</script>
+<div class="toast" id="toast"></div>
+
+
+<script id="correcao-final-clientes">
+let ALL_ROWS_BI = [];
+
+function normBI(v) {
+  return String(v || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function findColBI(keys, names, fallbackIndex) {
+  const normalized = keys.map(k => normBI(k));
+  for (const name of names) {
+    const n = normBI(name);
+    const idx = normalized.findIndex(k => k.includes(n));
+    if (idx >= 0) return keys[idx];
+  }
+  return keys[fallbackIndex];
+}
+
+function fmtBI(v) {
+  if (!v) return '';
+  if (v instanceof Date) {
+    const d = String(v.getDate()).padStart(2,'0');
+    const m = String(v.getMonth()+1).padStart(2,'0');
+    const y = v.getFullYear();
+    const hh = String(v.getHours()).padStart(2,'0');
+    const mm = String(v.getMinutes()).padStart(2,'0');
+    return (hh === '00' && mm === '00') ? `${d}/${m}/${y}` : `${d}/${m}/${y} ${hh}:${mm}`;
+  }
+  const s = String(v).trim();
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s]+(\d{2}):(\d{2}))?/);
+  if (iso) {
+    const base = `${iso[3]}/${iso[2]}/${iso[1]}`;
+    return iso[4] ? `${base} ${iso[4]}:${iso[5]}` : base;
+  }
+  const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
+  if (br) {
+    const base = `${br[1]}/${br[2]}/${br[3]}`;
+    return br[4] ? `${base} ${br[4]}:${br[5]}` : base;
+  }
+  return s;
+}
+
+function sortDateBI(v) {
+  const s = String(v || '').trim();
+  const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
+  if (br) return `${br[3]}-${br[2]}-${br[1]} ${br[4] || '00'}:${br[5] || '00'}`;
+  return s;
+}
+
+function cleanClienteBI(s) {
+  return String(s || '').replace(/\s*-\s*\d{5,8}.*/,'').trim();
+}
+
+function cleanCidadeBI(s) {
+  return String(s || '').split('/')[0].trim();
+}
+
+function parseWorkbookTodosRegistrosBI(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+  if (!rows.length) throw new Error('Planilha vazia');
+
+  const keys = Object.keys(rows[0]);
+
+  const colLoad = findColBI(keys, ['nº pedido', 'n pedido', 'pedido', 'load', 'doc'], 0);
+  const colStatus = findColBI(keys, ['alerta cobrança', 'alerta cobranca', 'status'], 1);
+  const colTransp = findColBI(keys, ['transportadora'], 2);
+  const colOrigem = findColBI(keys, ['origem'], 3);
+  const colInicio = findColBI(keys, ['previsão de início', 'previsao de inicio', 'data limite de inicio', 'inicio da viagem'], 4);
+  const colJanela = findColBI(keys, ['janela de carregamento', 'janela carregamento', 'agendamento'], 5);
+  const colEntrega = findColBI(keys, ['data entrega', 'dt entrega', 'entrega'], 6);
+  const colCliente = findColBI(keys, ['cliente'], 7);
+  const colDestino = findColBI(keys, ['cidade/uf destino', 'cidade destino', 'cidade', 'destino'], 8);
+
+  const all = [];
+  const statusCounts = {};
+  const atrasoMap = {};
+
+  rows.forEach(r => {
+    const status = String(r[colStatus] || '').trim();
+    if (!status) return;
+
+    const transp = String(r[colTransp] || '').trim();
+
+    const item = {
+      load: String(r[colLoad] || '').trim(),
+      status,
+      transportadora: transp,
+      origem: String(r[colOrigem] || '').trim(),
+      inicio: fmtBI(r[colInicio]),
+      janela: fmtBI(r[colJanela]),
+      entrega: fmtBI(r[colEntrega]),
+      cliente: cleanClienteBI(r[colCliente]),
+      cidade: cleanCidadeBI(r[colDestino])
+    };
+
+    all.push(item);
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+    if (status.toUpperCase().startsWith('ATRASADO')) {
+      if (!atrasoMap[transp]) atrasoMap[transp] = {};
+      atrasoMap[transp][status] = (atrasoMap[transp][status] || 0) + 1;
+    }
+  });
+
+  ALL_ROWS_BI = all;
+
+  // Mantém compatibilidade com o script original
+  if (typeof atrasoData !== 'undefined') {
+    atrasoData.length = 0;
+    all.forEach(x => atrasoData.push(x));
+  }
+
+  if (typeof transpData !== 'undefined') {
+    transpData.length = 0;
+    Object.entries(atrasoMap).forEach(([t, statuses]) => {
+      transpData.push({t, rows: Object.entries(statuses).map(([s,q]) => ({s,q}))});
+    });
+  }
+
+  if (typeof updateStatusCards === 'function') updateStatusCards(statusCounts, all.length);
+  const totalLoads = document.getElementById('totalLoads');
+  if (totalLoads) totalLoads.textContent = all.length;
+
+  const tituloTransp = document.querySelector('#tab-transportadora .section-title');
+  if (tituloTransp) {
+    tituloTransp.textContent = `Atrasos por Transportadora — ${all.filter(d => d.status.toUpperCase().startsWith('ATRASADO')).length} loads em atraso`;
+  }
+
+  if (typeof buildTranspGrid === 'function') buildTranspGrid();
+  popularFiltrosBI();
+  renderTable();
+  atualizarUltimaImportacaoBI();
+}
+
+function popularFiltrosBI() {
+  const data = ALL_ROWS_BI.length ? ALL_ROWS_BI : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+  function fillSelect(id, label, field, sortDate=false) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+
+    const atual = sel.value;
+    sel.innerHTML = `<option value="">${label}</option>`;
+
+    [...new Set(data.map(d => d[field]).filter(Boolean))]
+      .sort((a,b) => sortDate ? sortDateBI(a).localeCompare(sortDateBI(b)) : String(a).localeCompare(String(b)))
+      .forEach(v => {
+        const o = document.createElement('option');
+        o.value = v;
+        o.textContent = v;
+        sel.appendChild(o);
+      });
+
+    if ([...sel.options].some(o => o.value === atual)) sel.value = atual;
+  }
+
+  fillSelect('filterStatus', 'Todos os status', 'status');
+  fillSelect('filterInicio', 'Todas as datas limite de início da viagem', 'inicio', true);
+  fillSelect('filterJanela', 'Todas as janelas de carregamento', 'janela', true);
+  fillSelect('filterEntrega', 'Todas as datas de entrega', 'entrega', true);
+  fillSelect('filterTransp', 'Todas as transportadoras', 'transportadora');
+}
+
+function renderTable() {
+  const data = ALL_ROWS_BI.length ? ALL_ROWS_BI : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+  const fc = (document.getElementById('filterCliente')?.value || '').toLowerCase();
+  const fci = (document.getElementById('filterCidade')?.value || '').toLowerCase();
+  const fs = document.getElementById('filterStatus')?.value || '';
+  const fi = document.getElementById('filterInicio')?.value || '';
+  const fj = document.getElementById('filterJanela')?.value || '';
+  const fe = document.getElementById('filterEntrega')?.value || '';
+  const ft = document.getElementById('filterTransp')?.value || '';
+
+  const filtered = data.filter(d =>
+    (!fc || String(d.cliente || '').toLowerCase().includes(fc)) &&
+    (!fci || String(d.cidade || '').toLowerCase().includes(fci)) &&
+    (!fs || d.status === fs) &&
+    (!fi || d.inicio === fi) &&
+    (!fj || d.janela === fj) &&
+    (!fe || d.entrega === fe) &&
+    (!ft || d.transportadora === ft)
+  );
+
+  const body = document.getElementById('tableBody');
+  if (!body) return;
+
+  body.innerHTML = filtered.map(d => {
+    const cfg = STATUS_CONFIG[d.status] || {cls:'pill-carg-sem', short:d.status};
+    return `<tr>
+      <td><span class="load-badge">${d.load || '-'}</span></td>
+      <td><span class="status-pill ${cfg.cls}">${cfg.short || d.status || '-'}</span></td>
+      <td style="font-weight:600;font-size:13px">${d.transportadora || '-'}</td>
+      <td style="font-size:13px">${d.cliente || '-'}</td>
+      <td style="font-weight:600;font-size:13px;color:var(--accent)">${d.cidade || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.inicio || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.janela || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow)">${d.entrega || '-'}</td>
+    </tr>`;
+  }).join('');
+
+  const count = document.getElementById('tableCount');
+  if (count) count.innerHTML = `Exibindo <span>${filtered.length}</span> de <span>${data.length}</span> registros`;
+}
+
+function limparFiltrosClientes() {
+  ['filterCliente','filterCidade','filterStatus','filterInicio','filterJanela','filterEntrega','filterTransp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderTable();
+}
+
+// Reforça clique dos cards sem quebrar o switchTab original
+function setupClicksBI() {
+  const ORDER = [
+    "ATRASADO CARREGAMENTO - SEM SMP",
+    "OK - NO PRAZO",
+    "NA CLIF - COM SMP - AGUARDANDO SAÍDA",
+    "ATRASADO ENTREGA - SEM SMP",
+    "NA PENSKE - PRÉ-SMP - AGUARDANDO SAÍDA",
+    "ATRASADO CARREGAMENTO - PRÉ-SMP",
+    "NA PENSKE - COM SMP - AGUARDANDO SAÍDA",
+    "CARREGADO - SEM SMP",
+    "CARREGADO - PRÉ-SMP",
+    "ATRASADO ENTREGA - PRÉ-SMP",
+    "VERIFICAR SMP EM ANDAMENTO",
+    "OK NO PRAZO - VERIFICAR AGENDAMENTO",
+    "NA PENSKE - PRÉ-SMP - AGUARDANDO CARREGAMENTO"
+  ];
+
+  document.querySelectorAll('.status-card').forEach((card, i) => {
+    const status = ORDER[i];
+    if (!status) return;
+    card.classList.add('clickable-filter');
+    card.onclick = () => {
+      switchTab('clientes');
+      const sel = document.getElementById('filterStatus');
+      if (sel) {
+        if (![...sel.options].some(o => o.value === status)) {
+          const o = document.createElement('option');
+          o.value = status;
+          o.textContent = status;
+          sel.appendChild(o);
+        }
+        sel.value = status;
+      }
+      renderTable();
+    };
+  });
+}
+
+function fetchLocalFile() {
+  const btn = document.getElementById('importBtn');
+  if (btn) {
+    btn.classList.add('loading');
+    btn.innerHTML = '⏳ Atualizando...';
+  }
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', LOCAL_FILE, true);
+  xhr.responseType = 'arraybuffer';
+  xhr.onload = function() {
+    try {
+      parseWorkbookTodosRegistrosBI(xhr.response);
+      showToast('✅ Dados atualizados automaticamente!');
+    } catch(e) {
+      showToast('Erro ao processar arquivo: ' + e.message, true);
+    } finally {
+      if (btn) {
+        btn.classList.remove('loading');
+        btn.innerHTML = '⬆ Atualizar Dados (.xlsx)';
+      }
+      setupClicksBI();
+    }
+  };
+  xhr.onerror = function() {
+    if (btn) {
+      btn.classList.remove('loading');
+      btn.innerHTML = '⬆ Atualizar Dados (.xlsx)';
+    }
+  };
+  xhr.send();
+}
+
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const btn = document.getElementById('importBtn');
+  if (btn) {
+    btn.classList.add('loading');
+    btn.textContent = '⏳ Processando...';
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      parseWorkbookTodosRegistrosBI(e.target.result);
+      showToast(`✅ ${ALL_ROWS_BI.length} registros carregados com sucesso!`);
+    } catch(err) {
+      showToast('Erro ao ler o arquivo: ' + err.message, true);
+      console.error(err);
+    } finally {
+      if (btn) {
+        btn.classList.remove('loading');
+        btn.innerHTML = '⬆ Atualizar Dados (.xlsx)';
+      }
+      event.target.value = '';
+      setupClicksBI();
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const tabClientes = document.querySelectorAll('.tab')[2];
+  if (tabClientes) tabClientes.innerHTML = '📍 Status Cliente';
+
+  const st = document.querySelector('#tab-clientes .section-title');
+  if (st) st.textContent = 'Clientes & Cidades — Detalhamento';
+
+  popularFiltrosBI();
+  renderTable();
+  setupClicksBI();
+});
+</script>
+
+
+<script id="ajuste-filtros-sem-hora-e-classificacao">
+let SORT_MODE_BI = '';
+
+function onlyDateBI(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (br) return `${br[1]}/${br[2]}/${br[3]}`;
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  return s.substring(0, 10);
+}
+
+function dateTimeSortValueBI(v) {
+  if (!v) return '9999-99-99 99:99';
+  const s = String(v).trim();
+
+  const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
+  if (br) return `${br[3]}-${br[2]}-${br[1]} ${br[4] || '00'}:${br[5] || '00'}`;
+
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s]+(\d{2}):(\d{2}))?/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]} ${iso[4] || '00'}:${iso[5] || '00'}`;
+
+  return s;
+}
+
+function sortTableBy(mode) {
+  SORT_MODE_BI = SORT_MODE_BI === mode ? '' : mode;
+
+  const h = document.getElementById('sortHorarioBtn');
+  const t = document.getElementById('sortTransportadoraBtn');
+
+  if (h) h.classList.toggle('active', SORT_MODE_BI === 'horario');
+  if (t) t.classList.toggle('active', SORT_MODE_BI === 'transportadora');
+
+  renderTable();
+}
+
+function popularFiltrosBI() {
+  const data = ALL_ROWS_BI.length ? ALL_ROWS_BI : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+  function fillSelect(id, label, field, useDateOnly=false) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+
+    const atual = sel.value;
+    sel.innerHTML = `<option value="">${label}</option>`;
+
+    const values = [...new Set(data.map(d => useDateOnly ? onlyDateBI(d[field]) : d[field]).filter(Boolean))];
+
+    values
+      .sort((a,b) => useDateOnly ? dateTimeSortValueBI(a).localeCompare(dateTimeSortValueBI(b)) : String(a).localeCompare(String(b)))
+      .forEach(v => {
+        const o = document.createElement('option');
+        o.value = v;
+        o.textContent = v;
+        sel.appendChild(o);
+      });
+
+    if ([...sel.options].some(o => o.value === atual)) sel.value = atual;
+  }
+
+  fillSelect('filterStatus', 'Todos os status', 'status');
+  fillSelect('filterInicio', 'Todas as datas limite de início da viagem', 'inicio', true);
+  fillSelect('filterJanela', 'Todas as janelas de carregamento', 'janela', true);
+  fillSelect('filterEntrega', 'Todas as datas de entrega', 'entrega', true);
+  fillSelect('filterTransp', 'Todas as transportadoras', 'transportadora');
+}
+
+function renderTable() {
+  const data = ALL_ROWS_BI.length ? ALL_ROWS_BI : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+  const fc = (document.getElementById('filterCliente')?.value || '').toLowerCase();
+  const fci = (document.getElementById('filterCidade')?.value || '').toLowerCase();
+  const fs = document.getElementById('filterStatus')?.value || '';
+  const fi = document.getElementById('filterInicio')?.value || '';
+  const fj = document.getElementById('filterJanela')?.value || '';
+  const fe = document.getElementById('filterEntrega')?.value || '';
+  const ft = document.getElementById('filterTransp')?.value || '';
+
+  let filtered = data.filter(d =>
+    (!fc || String(d.cliente || '').toLowerCase().includes(fc)) &&
+    (!fci || String(d.cidade || '').toLowerCase().includes(fci)) &&
+    (!fs || d.status === fs) &&
+    (!fi || onlyDateBI(d.inicio) === fi) &&
+    (!fj || onlyDateBI(d.janela) === fj) &&
+    (!fe || onlyDateBI(d.entrega) === fe) &&
+    (!ft || d.transportadora === ft)
+  );
+
+  if (SORT_MODE_BI === 'horario') {
+    filtered = filtered.slice().sort((a,b) =>
+      dateTimeSortValueBI(a.janela || a.inicio || a.entrega).localeCompare(dateTimeSortValueBI(b.janela || b.inicio || b.entrega))
+    );
+  }
+
+  if (SORT_MODE_BI === 'transportadora') {
+    filtered = filtered.slice().sort((a,b) => {
+      const ta = String(a.transportadora || '');
+      const tb = String(b.transportadora || '');
+      const c = ta.localeCompare(tb);
+      if (c !== 0) return c;
+      return dateTimeSortValueBI(a.janela || a.inicio || a.entrega).localeCompare(dateTimeSortValueBI(b.janela || b.inicio || b.entrega));
+    });
+  }
+
+  const body = document.getElementById('tableBody');
+  if (!body) return;
+
+  body.innerHTML = filtered.map(d => {
+    let cfg = STATUS_CONFIG[d.status] || {cls:'pill-carg-sem', short:d.status};
+
+    if (String(d.status || '').toUpperCase().includes('OK') && String(d.status || '').toUpperCase().includes('PRAZO')) {
+      cfg = {cls:'pill-ok', short:d.status};
+    }
+
+    return `<tr>
+      <td><span class="load-badge">${d.load || '-'}</span></td>
+      <td><span class="status-pill ${cfg.cls}">${cfg.short || d.status || '-'}</span></td>
+      <td style="font-weight:600;font-size:13px">${d.transportadora || '-'}</td>
+      <td style="font-size:13px">${d.cliente || '-'}</td>
+      <td style="font-weight:600;font-size:13px;color:var(--accent)">${d.cidade || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.inicio || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.janela || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow)">${d.entrega || '-'}</td>
+    </tr>`;
+  }).join('');
+
+  const count = document.getElementById('tableCount');
+  if (count) document.getElementById('tableCount').innerHTML = `Exibindo <span>${filtered.length}</span> de <span>${data.length}</span> registros`;
+}
+
+function limparFiltrosClientes() {
+  ['filterCliente','filterCidade','filterStatus','filterInicio','filterJanela','filterEntrega','filterTransp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  SORT_MODE_BI = '';
+  const h = document.getElementById('sortHorarioBtn');
+  const t = document.getElementById('sortTransportadoraBtn');
+  if (h) h.classList.remove('active');
+  if (t) t.classList.remove('active');
+
+  renderTable();
+}
+</script>
+
+
+<script id="ajuste-final-cores-cabecalho-sem-dados-antigos">
+
+function atualizarUltimaImportacaoBI() {
+  const now = new Date();
+
+  const data = now.toLocaleDateString('pt-BR');
+  const hora = now.toLocaleTimeString('pt-BR', {
+    hour:'2-digit',
+    minute:'2-digit',
+    second:'2-digit'
+  });
+
+  const el = document.getElementById('lastUpdate');
+
+  if (el) {
+    el.innerHTML = `Última atualização: <span>${data} ${hora}</span>`;
+  }
+}
+
+let SORT_FIELD_FINAL = '';
+let SORT_ASC_FINAL = true;
+
+// Ao abrir, não usar dados antigos fixos do HTML.
+ALL_ROWS_BI = [];
+if (typeof atrasoData !== 'undefined') atrasoData.length = 0;
+if (typeof tableData !== 'undefined') tableData.length = 0;
+
+function statusClassFinal(status) {
+  const s = String(status || '').toUpperCase();
+
+  if (s.includes('ATRASADO')) {
+    return {cls:'pill-carg-sem', short: status};
+  }
+
+  if (s.includes('OK') && s.includes('PRAZO')) {
+    return {cls:'pill-ok', short: status};
+  }
+
+  return {cls:'pill-alerta', short: status};
+}
+
+function sortTableByHeader(field) {
+  if (SORT_FIELD_FINAL === field) {
+    SORT_ASC_FINAL = !SORT_ASC_FINAL;
+  } else {
+    SORT_FIELD_FINAL = field;
+    SORT_ASC_FINAL = true;
+  }
+
+  document.querySelectorAll('th.sortable-th').forEach(th => th.classList.remove('active-sort'));
+  const active = [...document.querySelectorAll('th.sortable-th')].find(th => th.getAttribute('onclick')?.includes(`'${field}'`));
+  if (active) active.classList.add('active-sort');
+
+  renderTable();
+}
+
+function getSortValueFinal(row, field) {
+  const value = row[field] || '';
+
+  if (['inicio', 'janela', 'entrega'].includes(field)) {
+    return dateTimeSortValueBI(value);
+  }
+
+  return String(value).toUpperCase();
+}
+
+function renderTable() {
+  const data = ALL_ROWS_BI || [];
+
+  const fc = (document.getElementById('filterCliente')?.value || '').toLowerCase();
+  const fci = (document.getElementById('filterCidade')?.value || '').toLowerCase();
+  const fs = document.getElementById('filterStatus')?.value || '';
+  const fi = document.getElementById('filterInicio')?.value || '';
+  const fj = document.getElementById('filterJanela')?.value || '';
+  const fe = document.getElementById('filterEntrega')?.value || '';
+  const ft = document.getElementById('filterTransp')?.value || '';
+
+  let filtered = data.filter(d =>
+    (!fc || String(d.cliente || '').toLowerCase().includes(fc)) &&
+    (!fci || String(d.cidade || '').toLowerCase().includes(fci)) &&
+    (!fs || d.status === fs) &&
+    (!fi || onlyDateBI(d.inicio) === fi) &&
+    (!fj || onlyDateBI(d.janela) === fj) &&
+    (!fe || onlyDateBI(d.entrega) === fe) &&
+    (!ft || d.transportadora === ft)
+  );
+
+  if (SORT_FIELD_FINAL) {
+    filtered = filtered.slice().sort((a,b) => {
+      const va = getSortValueFinal(a, SORT_FIELD_FINAL);
+      const vb = getSortValueFinal(b, SORT_FIELD_FINAL);
+      const result = String(va).localeCompare(String(vb), 'pt-BR', {numeric:true});
+      return SORT_ASC_FINAL ? result : -result;
+    });
+  }
+
+  const body = document.getElementById('tableBody');
+  if (!body) return;
+
+  body.innerHTML = filtered.map(d => {
+    const cfg = statusClassFinal(d.status);
+
+    return `<tr>
+      <td><span class="load-badge">${d.load || '-'}</span></td>
+      <td><span class="status-pill ${cfg.cls}">${cfg.short || d.status || '-'}</span></td>
+      <td style="font-weight:600;font-size:13px">${d.transportadora || '-'}</td>
+      <td style="font-size:13px">${d.cliente || '-'}</td>
+      <td style="font-weight:600;font-size:13px;color:var(--accent)">${d.cidade || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.inicio || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.janela || '-'}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow)">${d.entrega || '-'}</td>
+    </tr>`;
+  }).join('');
+
+  const count = document.getElementById('tableCount');
+  if (count) count.innerHTML = `Exibindo <span>${filtered.length}</span> de <span>${data.length}</span> registros`;
+}
+
+function limparFiltrosClientes() {
+  ['filterCliente','filterCidade','filterStatus','filterInicio','filterJanela','filterEntrega','filterTransp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  SORT_FIELD_FINAL = '';
+  SORT_ASC_FINAL = true;
+  document.querySelectorAll('th.sortable-th').forEach(th => th.classList.remove('active-sort'));
+
+  renderTable();
+}
+
+// Deixa a tela em branco ao carregar até entrar arquivo novo.
+document.addEventListener('DOMContentLoaded', () => {
+  ALL_ROWS_BI = [];
+  if (typeof atrasoData !== 'undefined') atrasoData.length = 0;
+  if (typeof tableData !== 'undefined') tableData.length = 0;
+
+  const totalLoads = document.getElementById('totalLoads');
+  if (totalLoads) totalLoads.textContent = '0';
+
+  const last = document.getElementById('lastUpdate');
+  if (last) last.innerHTML = 'Última atualização: <span>aguardando importação</span>';
+
+  popularFiltrosBI();
+  renderTable();
+});
+</script>
+
+
+<script id="mapa-entregas-script">
+let MAP_BI = null;
+let MAP_MARKERS_BI = [];
+const GEO_CACHE_BI = {};
+
+const CITY_COORDS_BI = {
+  "SAO PAULO": [-23.5505, -46.6333],
+  "SÃO PAULO": [-23.5505, -46.6333],
+  "CAJAMAR": [-23.3569, -46.8761],
+  "JUNDIAI": [-23.1857, -46.8978],
+  "JUNDIAÍ": [-23.1857, -46.8978],
+  "CURITIBA": [-25.4296, -49.2713],
+  "CONTAGEM": [-19.9317, -44.0536],
+  "BRASILIA": [-15.7939, -47.8828],
+  "BRASÍLIA": [-15.7939, -47.8828],
+  "GOIANIA": [-16.6869, -49.2648],
+  "GOIÂNIA": [-16.6869, -49.2648],
+  "ITAJAI": [-26.9101, -48.6705],
+  "ITAJAÍ": [-26.9101, -48.6705],
+  "BIGUACU": [-27.4949, -48.6553],
+  "BIGUAÇU": [-27.4949, -48.6553],
+  "CAMACARI": [-12.6972, -38.3246],
+  "CAMAÇARI": [-12.6972, -38.3246],
+  "ALHANDRA": [-7.4386, -34.9144],
+  "BENEVIDES": [-1.3618, -48.2447],
+  "CABO DE SANTO AGOSTINHO": [-8.2833, -35.0333],
+  "CANDEIAS": [-12.6716, -38.5472],
+  "CERRO LARGO": [-28.1486, -54.7381],
+  "CUIABA": [-15.6014, -56.0979],
+  "CUIABÁ": [-15.6014, -56.0979],
+  "DUQUE DE CAXIAS": [-22.7856, -43.3117],
+  "IPAMERI": [-17.7215, -48.1597],
+  "JABOATAO DOS GUARARAPES": [-8.1128, -35.0147],
+  "JABOATÃO DOS GUARARAPES": [-8.1128, -35.0147],
+  "LONDRINA": [-23.3045, -51.1696],
+  "LOUVEIRA": [-23.0864, -46.9507],
+  "MACAPA": [0.0349, -51.0694],
+  "MACAPÁ": [0.0349, -51.0694],
+  "MARACANAU": [-3.8667, -38.6250],
+  "MARACANAÚ": [-3.8667, -38.6250],
+  "NOVA SANTA RITA": [-29.8525, -51.2837],
+  "OSASCO": [-23.5329, -46.7918],
+  "RIBEIRAO PRETO": [-21.1775, -47.8103],
+  "RIBEIRÃO PRETO": [-21.1775, -47.8103],
+  "SAO BERNARDO DO CAMPO": [-23.6914, -46.5646],
+  "SÃO BERNARDO DO CAMPO": [-23.6914, -46.5646],
+  "SAO JOSE DOS PINHAIS": [-25.5313, -49.2031],
+  "SÃO JOSÉ DOS PINHAIS": [-25.5313, -49.2031],
+  "SAPIRANGA": [-29.6381, -51.0069],
+  "BARRA VELHA": [-26.6370, -48.6938]
+};
+
+function normalizeCityBI(v) {
+  return String(v || '')
+    .toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function getMapDataBI() {
+  if (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length) return ALL_ROWS_BI;
+  if (typeof tableData !== 'undefined' && tableData.length) return tableData;
+  if (typeof atrasoData !== 'undefined' && atrasoData.length) return atrasoData;
+  return [];
+}
+
+function initMapBI() {
+  if (MAP_BI || !document.getElementById('deliveryMap') || typeof L === 'undefined') return;
+
+  MAP_BI = L.map('deliveryMap', {
+    zoomControl: true
+  }).setView([-14.2350, -51.9253], 4);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(MAP_BI);
+}
+
+function populateMapFiltersBI() {
+  const data = getMapDataBI();
+  const statusSel = document.getElementById('mapStatusFilter');
+  const transpSel = document.getElementById('mapTranspFilter');
+
+  if (statusSel) {
+    const cur = statusSel.value;
+    statusSel.innerHTML = '<option value="">Todos os status</option>';
+    [...new Set(data.map(d => d.status).filter(Boolean))].sort().forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      statusSel.appendChild(o);
+    });
+    if ([...statusSel.options].some(o => o.value === cur)) statusSel.value = cur;
+  }
+
+  if (transpSel) {
+    const cur = transpSel.value;
+    transpSel.innerHTML = '<option value="">Todas as transportadoras</option>';
+    [...new Set(data.map(d => d.transportadora).filter(Boolean))].sort().forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      transpSel.appendChild(o);
+    });
+    if ([...transpSel.options].some(o => o.value === cur)) transpSel.value = cur;
+  }
+}
+
+function markerColorBI(status) {
+  const s = String(status || '').toUpperCase();
+  if (s.includes('ATRASADO')) return '#ff3b5c';
+  if (s.includes('OK') && s.includes('PRAZO')) return '#00e676';
+  return '#ffd600';
+}
+
+function createCircleMarkerBI(latlng, status) {
+  return L.circleMarker(latlng, {
+    radius: 9,
+    color: markerColorBI(status),
+    fillColor: markerColorBI(status),
+    fillOpacity: 0.85,
+    weight: 2
+  });
+}
+
+async function geocodeCityBI(city) {
+  const key = normalizeCityBI(city);
+  if (!key) return null;
+
+  if (CITY_COORDS_BI[key]) return CITY_COORDS_BI[key];
+  if (GEO_CACHE_BI[key]) return GEO_CACHE_BI[key];
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(city + ', Brasil')}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+
+    if (json && json[0]) {
+      const coord = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+      GEO_CACHE_BI[key] = coord;
+      return coord;
+    }
+  } catch(e) {}
+
+  return null;
+}
+
+async function updateMapBI() {
+  initMapBI();
+  if (!MAP_BI) return;
+
+  populateMapFiltersBI();
+
+  MAP_MARKERS_BI.forEach(m => MAP_BI.removeLayer(m));
+  MAP_MARKERS_BI = [];
+
+  const statusFilter = document.getElementById('mapStatusFilter')?.value || '';
+  const transpFilter = document.getElementById('mapTranspFilter')?.value || '';
+
+  const base = getMapDataBI().filter(d =>
+    d.cidade &&
+    (!statusFilter || d.status === statusFilter) &&
+    (!transpFilter || d.transportadora === transpFilter)
+  );
+
+  const cityMap = {};
+  base.forEach(d => {
+    const city = String(d.cidade || '').trim();
+    const key = normalizeCityBI(city);
+    if (!cityMap[key]) cityMap[key] = {city, rows: []};
+    cityMap[key].rows.push(d);
+  });
+
+  const bounds = [];
+
+  for (const item of Object.values(cityMap)) {
+    const coord = await geocodeCityBI(item.city);
+    if (!coord) continue;
+
+    const statusResumo = {};
+    item.rows.forEach(r => {
+      statusResumo[r.status] = (statusResumo[r.status] || 0) + 1;
+    });
+
+    const principalStatus = Object.keys(statusResumo).sort((a,b) => statusResumo[b] - statusResumo[a])[0];
+
+    const linhasStatus = Object.entries(statusResumo)
+      .map(([s,q]) => `<div class="map-popup-line"><b>${q}</b> - ${s}</div>`)
+      .join('');
+
+    const transportadoras = [...new Set(item.rows.map(r => r.transportadora).filter(Boolean))].join(', ');
+
+    const popup = `
+      <div class="map-popup-title">${item.city}</div>
+      <div class="map-popup-line"><b>Total:</b> ${item.rows.length} entrega(s)</div>
+      <div class="map-popup-line"><b>Transportadoras:</b> ${transportadoras || '-'}</div>
+      <hr>
+      ${linhasStatus}
+    `;
+
+    const marker = createCircleMarkerBI(coord, principalStatus).bindPopup(popup);
+    marker.addTo(MAP_BI);
+    MAP_MARKERS_BI.push(marker);
+    bounds.push(coord);
+  }
+
+  if (bounds.length) {
+    MAP_BI.fitBounds(bounds, {padding:[40,40]});
+  } else {
+    MAP_BI.setView([-14.2350, -51.9253], 4);
+  }
+
+  const count = document.getElementById('mapCount');
+  if (count) {
+    count.innerHTML = `Exibindo <span>${Object.keys(cityMap).length}</span> cidade(s) no mapa, com <span>${base.length}</span> registro(s).`;
+  }
+
+  setTimeout(() => MAP_BI.invalidateSize(), 300);
+}
+
+// Atualiza mapa ao trocar para a aba
+const oldSwitchTabMapaBI = window.switchTab;
+window.switchTab = function(tab) {
+  oldSwitchTabMapaBI(tab);
+  if (tab === 'mapa') {
+    setTimeout(updateMapBI, 300);
+  }
+};
+
+// Garante atualização depois da importação
+const oldRenderTableMapaBI = window.renderTable;
+window.renderTable = function() {
+  if (typeof oldRenderTableMapaBI === 'function') oldRenderTableMapaBI();
+  populateMapFiltersBI();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  populateMapFiltersBI();
+});
+</script>
+
+
+<script id="ocultar-status-zerados">
+(function(){
+  const oldUpdateStatusCards = window.updateStatusCards;
+
+  window.updateStatusCards = function(counts, total) {
+    if (typeof oldUpdateStatusCards === 'function') {
+      oldUpdateStatusCards(counts, total);
+    }
+
+    const ORDER = [
+      "ATRASADO CARREGAMENTO - SEM SMP",
+      "OK - NO PRAZO",
+      "NA CLIF - COM SMP - AGUARDANDO SAÍDA",
+      "ATRASADO ENTREGA - SEM SMP",
+      "NA PENSKE - PRÉ-SMP - AGUARDANDO SAÍDA",
+      "ATRASADO CARREGAMENTO - PRÉ-SMP",
+      "NA PENSKE - COM SMP - AGUARDANDO SAÍDA",
+      "CARREGADO - SEM SMP",
+      "CARREGADO - PRÉ-SMP",
+      "ATRASADO ENTREGA - PRÉ-SMP",
+      "VERIFICAR SMP EM ANDAMENTO",
+      "OK NO PRAZO - VERIFICAR AGENDAMENTO",
+      "NA PENSKE - PRÉ-SMP - AGUARDANDO CARREGAMENTO"
+    ];
+
+    document.querySelectorAll('.status-card').forEach((card, index) => {
+      const status = ORDER[index];
+      const qtd = counts && status ? (counts[status] || 0) : 0;
+
+      card.style.display = qtd > 0 ? 'flex' : 'none';
+    });
+
+    const sectionTitle = document.querySelector('#tab-painel .section-title');
+    if (sectionTitle) {
+      sectionTitle.textContent = `Distribuição por Status — ${total || 0} Loads monitorados`;
+    }
+  };
+})();
+</script>
+
+
+<script id="filtro-load-final">
+(function(){
+  const oldRenderTable = window.renderTable;
+
+  window.renderTable = function() {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const fl = (document.getElementById('filterLoad')?.value || '').toLowerCase().trim();
+    const fc = (document.getElementById('filterCliente')?.value || '').toLowerCase();
+    const fci = (document.getElementById('filterCidade')?.value || '').toLowerCase();
+    const fs = document.getElementById('filterStatus')?.value || '';
+    const fi = document.getElementById('filterInicio')?.value || '';
+    const fj = document.getElementById('filterJanela')?.value || '';
+    const fe = document.getElementById('filterEntrega')?.value || '';
+    const ft = document.getElementById('filterTransp')?.value || '';
+
+    let filtered = data.filter(d =>
+      (!fl || String(d.load || '').toLowerCase().includes(fl)) &&
+      (!fc || String(d.cliente || '').toLowerCase().includes(fc)) &&
+      (!fci || String(d.cidade || '').toLowerCase().includes(fci)) &&
+      (!fs || d.status === fs) &&
+      (!fi || onlyDateBI(d.inicio) === fi) &&
+      (!fj || onlyDateBI(d.janela) === fj) &&
+      (!fe || onlyDateBI(d.entrega) === fe) &&
+      (!ft || d.transportadora === ft)
+    );
+
+    if (typeof SORT_FIELD_FINAL !== 'undefined' && SORT_FIELD_FINAL) {
+      filtered = filtered.slice().sort((a,b) => {
+        const va = getSortValueFinal(a, SORT_FIELD_FINAL);
+        const vb = getSortValueFinal(b, SORT_FIELD_FINAL);
+        const result = String(va).localeCompare(String(vb), 'pt-BR', {numeric:true});
+        return SORT_ASC_FINAL ? result : -result;
+      });
+    }
+
+    const body = document.getElementById('tableBody');
+    if (!body) return;
+
+    body.innerHTML = filtered.map(d => {
+      const cfg = typeof statusClassFinal === 'function'
+        ? statusClassFinal(d.status)
+        : (STATUS_CONFIG[d.status] || {cls:'pill-alerta', short:d.status});
+
+      return `<tr>
+        <td><span class="load-badge">${d.load || '-'}</span></td>
+        <td><span class="status-pill ${cfg.cls}">${cfg.short || d.status || '-'}</span></td>
+        <td style="font-weight:600;font-size:13px">${d.transportadora || '-'}</td>
+        <td style="font-size:13px">${d.cliente || '-'}</td>
+        <td style="font-weight:600;font-size:13px;color:var(--accent)">${d.cidade || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.inicio || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.janela || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow)">${d.entrega || '-'}</td>
+      </tr>`;
+    }).join('');
+
+    const count = document.getElementById('tableCount');
+    if (count) count.innerHTML = `Exibindo <span>${filtered.length}</span> de <span>${data.length}</span> registros`;
+  };
+
+  const oldLimpar = window.limparFiltrosClientes;
+  window.limparFiltrosClientes = function() {
+    ['filterLoad','filterCliente','filterCidade','filterStatus','filterInicio','filterJanela','filterEntrega','filterTransp'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+    if (typeof SORT_FIELD_FINAL !== 'undefined') SORT_FIELD_FINAL = '';
+    if (typeof SORT_ASC_FINAL !== 'undefined') SORT_ASC_FINAL = true;
+
+    document.querySelectorAll('th.sortable-th').forEach(th => th.classList.remove('active-sort'));
+    renderTable();
+  };
+})();
+</script>
+
+
+<script id="usar-apenas-aba-painel-status">
+function getPainelStatusSheetBI(wb) {
+  const alvo = wb.SheetNames.find(nome => {
+    const n = String(nome || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/\s+/g,' ')
+      .trim();
+
+    return n === 'painel de status' || n.includes('painel status') || n.includes('painel de status');
+  });
+
+  return alvo || wb.SheetNames[0];
+}
+
+// Sobrescreve o processamento para ler somente a aba Painel de Status
+if (typeof parseWorkbookTodosRegistrosBI === 'function') {
+  const oldParseWorkbookTodosRegistrosBI = parseWorkbookTodosRegistrosBI;
+
+  parseWorkbookTodosRegistrosBI = function(arrayBuffer) {
+    const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+    const sheetName = getPainelStatusSheetBI(wb);
+    const ws = wb.Sheets[sheetName];
+
+    // Cria um novo workbook temporário com apenas a aba Painel de Status
+    const wbTemp = {
+      SheetNames: [sheetName],
+      Sheets: {}
+    };
+    wbTemp.Sheets[sheetName] = ws;
+
+    const newArray = XLSX.write(wbTemp, {bookType:'xlsx', type:'array'});
+    oldParseWorkbookTodosRegistrosBI(newArray);
+
+    const last = document.getElementById('lastUpdate');
+    if (last) {
+      const now = new Date();
+      const data = now.toLocaleDateString('pt-BR');
+      const hora = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      last.innerHTML = `Última atualização: <span>${data} ${hora}</span>`;
+    }
+  };
+}
+
+// Também cobre caso exista processWorkbook no HTML
+if (typeof processWorkbook === 'function') {
+  const oldProcessWorkbookBI = processWorkbook;
+
+  processWorkbook = function(arrayBuffer) {
+    const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+    const sheetName = getPainelStatusSheetBI(wb);
+    const ws = wb.Sheets[sheetName];
+
+    const wbTemp = {
+      SheetNames: [sheetName],
+      Sheets: {}
+    };
+    wbTemp.Sheets[sheetName] = ws;
+
+    const newArray = XLSX.write(wbTemp, {bookType:'xlsx', type:'array'});
+    oldProcessWorkbookBI(newArray);
+
+    const last = document.getElementById('lastUpdate');
+    if (last) {
+      const now = new Date();
+      const data = now.toLocaleDateString('pt-BR');
+      const hora = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      last.innerHTML = `Última atualização: <span>${data} ${hora}</span>`;
+    }
+  };
+}
+</script>
+
+
+<script id="status-dinamico-em-viagem">
+(function(){
+  function statusVisualBI(status) {
+    const s = String(status || '').toUpperCase();
+
+    if (s.includes('ATRASADO')) return {card:'red-card', pill:'pill-carg-sem', icon:'🚨', label:'Atraso'};
+    if (s.includes('OK') && s.includes('PRAZO')) return {card:'ok-card', pill:'pill-ok', icon:'✅', label:'Normal'};
+    if (s.includes('EM VIAGEM')) return {card:'', pill:'pill-viagem', icon:'🚚', label:'Em viagem'};
+    return {card:'warning-card', pill:'pill-alerta', icon:'⚠️', label:'Atenção'};
+  }
+
+  const oldStatusClassFinal = window.statusClassFinal;
+  window.statusClassFinal = function(status) {
+    const v = statusVisualBI(status);
+
+    if (String(status || '').toUpperCase().includes('EM VIAGEM')) {
+      return {cls:'pill-viagem', short:status};
+    }
+
+    if (typeof oldStatusClassFinal === 'function') {
+      const old = oldStatusClassFinal(status);
+      if (old) return old;
+    }
+
+    return {cls:v.pill, short:status};
+  };
+
+  window.updateStatusCards = function(counts, total) {
+    const grid = document.querySelector('#tab-painel .status-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    const entries = Object.entries(counts || {})
+      .filter(([status, qtd]) => status && qtd > 0)
+      .sort((a,b) => {
+        const sa = String(a[0]).toUpperCase();
+        const sb = String(b[0]).toUpperCase();
+
+        function peso(s) {
+          if (s.includes('ATRASADO')) return 1;
+          if (s.includes('EM VIAGEM')) return 2;
+          if (s.includes('OK') && s.includes('PRAZO')) return 3;
+          return 4;
+        }
+
+        const p = peso(sa) - peso(sb);
+        if (p !== 0) return p;
+        return b[1] - a[1];
+      });
+
+    entries.forEach(([status, qtd]) => {
+      const visual = statusVisualBI(status);
+
+      const card = document.createElement('div');
+      card.className = `status-card dynamic-status-card ${visual.card} clickable-filter`;
+      card.onclick = () => {
+        if (typeof switchTab === 'function') switchTab('clientes');
+
+        const sel = document.getElementById('filterStatus');
+        if (sel) {
+          if (![...sel.options].some(o => o.value === status)) {
+            const o = document.createElement('option');
+            o.value = status;
+            o.textContent = status;
+            sel.appendChild(o);
+          }
+          sel.value = status;
+        }
+
+        if (typeof renderTable === 'function') renderTable();
+      };
+
+      card.innerHTML = `
+        <div class="status-icon">${visual.icon}</div>
+        <div class="status-info">
+          <div class="status-label">${visual.label}</div>
+          <div class="status-name">${status}</div>
+        </div>
+        <div class="status-count">${qtd}</div>
+      `;
+
+      grid.appendChild(card);
+    });
+
+    const sectionTitle = document.querySelector('#tab-painel .section-title');
+    if (sectionTitle) {
+      sectionTitle.textContent = `Distribuição por Status — ${total || 0} Loads monitorados`;
+    }
+
+    const totalLoads = document.getElementById('totalLoads');
+    if (totalLoads) totalLoads.textContent = total || 0;
+  };
+
+  // Reforça renderização de cor EM VIAGEM na tabela
+  const oldRenderTable = window.renderTable;
+  window.renderTable = function() {
+    if (typeof oldRenderTable === 'function') oldRenderTable();
+
+    document.querySelectorAll('#tableBody tr').forEach(tr => {
+      const pill = tr.querySelector('.status-pill');
+      if (!pill) return;
+
+      const txt = String(pill.textContent || '').toUpperCase();
+      if (txt.includes('EM VIAGEM')) {
+        pill.className = 'status-pill pill-viagem';
+      }
+    });
+  };
+})();
+</script>
+
+
+<script id="corrigir-clique-em-viagem">
+(function(){
+  function normalizeStatusClickBI(v) {
+    return String(v || '')
+      .toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+
+  function applyStatusFilterBI(status) {
+    if (typeof switchTab === 'function') switchTab('clientes');
+
+    const sel = document.getElementById('filterStatus');
+    if (!sel) return;
+
+    const wanted = normalizeStatusClickBI(status);
+
+    let realValue = '';
+    [...sel.options].forEach(o => {
+      if (normalizeStatusClickBI(o.value) === wanted) realValue = o.value;
+    });
+
+    // Caso o card esteja como EM VIAGEM e na planilha venha com variação de texto
+    if (!realValue && wanted.includes('EM VIAGEM')) {
+      [...sel.options].forEach(o => {
+        if (normalizeStatusClickBI(o.value).includes('EM VIAGEM')) realValue = o.value;
+      });
+    }
+
+    if (!realValue) {
+      const o = document.createElement('option');
+      o.value = status;
+      o.textContent = status;
+      sel.appendChild(o);
+      realValue = status;
+    }
+
+    sel.value = realValue;
+
+    if (typeof renderTable === 'function') renderTable();
+  }
+
+  // Recria o clique dos cards dinâmicos, principalmente EM VIAGEM
+  function fixStatusCardClicksBI() {
+    document.querySelectorAll('#tab-painel .status-card').forEach(card => {
+      const nameEl = card.querySelector('.status-name');
+      if (!nameEl) return;
+
+      const status = nameEl.textContent.trim();
+
+      card.onclick = function() {
+        applyStatusFilterBI(status);
+      };
+    });
+  }
+
+  // Corrige também depois de atualizar os cards
+  const oldUpdateStatusCards = window.updateStatusCards;
+  window.updateStatusCards = function(counts, total) {
+    if (typeof oldUpdateStatusCards === 'function') oldUpdateStatusCards(counts, total);
+    setTimeout(fixStatusCardClicksBI, 50);
+  };
+
+  // Garante o clique após importação/renderização
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(fixStatusCardClicksBI, 300);
+  });
+
+  window.applyStatusFilterBI = applyStatusFilterBI;
+})();
+</script>
+
+
+<script id="localizacao-placa-distancia">
+(function(){
+  function normColLocBI(v) {
+    return String(v || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+
+  function findColLocalizacaoBI(keys, names, fallbackIndex) {
+    const normalized = keys.map(k => normColLocBI(k));
+    for (const name of names) {
+      const n = normColLocBI(name);
+      const idx = normalized.findIndex(k => k.includes(n));
+      if (idx >= 0) return keys[idx];
+    }
+    return fallbackIndex != null ? keys[fallbackIndex] : null;
+  }
+
+  function extractLatLngBI(text) {
+    const s = String(text || '');
+
+    // Google Maps com @lat,lng
+    let m = s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+
+    // q=lat,lng ou query=lat,lng
+    m = s.match(/[?&](?:q|query)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+
+    // texto comum "-23.55, -46.63"
+    m = s.match(/(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+
+    return null;
+  }
+
+  function haversineKmBI(a, b) {
+    if (!a || !b) return '';
+    const R = 6371;
+    const toRad = deg => deg * Math.PI / 180;
+    const dLat = toRad(b[0] - a[0]);
+    const dLon = toRad(b[1] - a[1]);
+    const lat1 = toRad(a[0]);
+    const lat2 = toRad(b[0]);
+
+    const h = Math.sin(dLat/2) ** 2 +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) ** 2;
+
+    return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+  }
+
+  async function getClientCoordBI(row) {
+    if (typeof geocodeCityBI === 'function') {
+      return await geocodeCityBI(row.cidade);
+    }
+
+    const key = typeof normalizeCityBI === 'function'
+      ? normalizeCityBI(row.cidade)
+      : String(row.cidade || '').toUpperCase();
+
+    if (typeof CITY_COORDS_BI !== 'undefined' && CITY_COORDS_BI[key]) return CITY_COORDS_BI[key];
+    return null;
+  }
+
+  function locationDisplayBI(loc) {
+    const s = String(loc || '').trim();
+    if (!s) return '-';
+    if (s.length > 38) return s.substring(0, 38) + '...';
+    return s;
+  }
+
+  // Reforça a leitura da planilha adicionando localização e placa sem perder a lógica atual
+  if (typeof parseWorkbookTodosRegistrosBI === 'function') {
+    const oldParseLocBI = parseWorkbookTodosRegistrosBI;
+
+    parseWorkbookTodosRegistrosBI = function(arrayBuffer) {
+      const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+      const sheetName = typeof getPainelStatusSheetBI === 'function' ? getPainelStatusSheetBI(wb) : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+
+      oldParseLocBI(arrayBuffer);
+
+      if (!rows.length || typeof ALL_ROWS_BI === 'undefined') return;
+
+      const keys = Object.keys(rows[0]);
+
+      const colLoad = findColLocalizacaoBI(keys, ['nº pedido', 'n pedido', 'pedido', 'load', 'doc'], 0);
+      const colLoc = findColLocalizacaoBI(keys, ['localização do veiculo', 'localizacao do veiculo', 'localização veículo', 'localizacao veiculo', 'localizacao', 'localização'], null);
+      const colPlaca = findColLocalizacaoBI(keys, ['placa'], null);
+
+      const extraByLoad = {};
+      rows.forEach(r => {
+        const load = String(r[colLoad] || '').trim();
+        if (!load) return;
+        extraByLoad[load] = {
+          localizacaoVeiculo: colLoc ? String(r[colLoc] || '').trim() : '',
+          placa: colPlaca ? String(r[colPlaca] || '').trim() : ''
+        };
+      });
+
+      ALL_ROWS_BI.forEach(item => {
+        const extra = extraByLoad[String(item.load || '').trim()];
+        if (extra) {
+          item.localizacaoVeiculo = extra.localizacaoVeiculo;
+          item.placa = extra.placa;
+          item.coordVeiculo = extractLatLngBI(extra.localizacaoVeiculo);
+        }
+      });
+
+      if (typeof atrasoData !== 'undefined') {
+        atrasoData.forEach(item => {
+          const extra = extraByLoad[String(item.load || '').trim()];
+          if (extra) {
+            item.localizacaoVeiculo = extra.localizacaoVeiculo;
+            item.placa = extra.placa;
+            item.coordVeiculo = extractLatLngBI(extra.localizacaoVeiculo);
+          }
+        });
+      }
+
+      if (typeof popularFiltrosBI === 'function') popularFiltrosBI();
+      if (typeof renderTable === 'function') renderTable();
+    };
+  }
+
+  window.openVehicleOnMapBI = async function(load) {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const row = data.find(x => String(x.load) === String(load));
+    if (!row) return;
+
+    if (typeof switchTab === 'function') switchTab('mapa');
+
+    setTimeout(async () => {
+      if (typeof initMapBI === 'function') initMapBI();
+      if (typeof updateMapBI === 'function') await updateMapBI();
+
+      if (typeof MAP_BI === 'undefined' || !MAP_BI) return;
+
+      const coordVeiculo = row.coordVeiculo || extractLatLngBI(row.localizacaoVeiculo);
+      const coordCliente = await getClientCoordBI(row);
+
+      const markers = [];
+
+      if (coordCliente && typeof L !== 'undefined') {
+        const clienteMarker = L.circleMarker(coordCliente, {
+          radius: 10,
+          color: '#ffd600',
+          fillColor: '#ffd600',
+          fillOpacity: .9,
+          weight: 2
+        }).addTo(MAP_BI).bindPopup(`
+          <div class="map-popup-title">Cliente final</div>
+          <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+          <div class="map-popup-line"><b>Cidade:</b> ${row.cidade || '-'}</div>
+          <div class="map-popup-line"><b>Status:</b> ${row.status || '-'}</div>
+        `);
+        markers.push(clienteMarker);
+      }
+
+      if (coordVeiculo && typeof L !== 'undefined') {
+        const dist = coordCliente ? haversineKmBI(coordVeiculo, coordCliente) : '';
+        const veiculoMarker = L.circleMarker(coordVeiculo, {
+          radius: 11,
+          color: '#4fc3f7',
+          fillColor: '#4fc3f7',
+          fillOpacity: .95,
+          weight: 3
+        }).addTo(MAP_BI).bindPopup(`
+          <div class="map-popup-title">Veículo ${row.placa || '-'}</div>
+          <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+          <div class="map-popup-line"><b>Localização:</b> ${row.localizacaoVeiculo || '-'}</div>
+          <div class="map-popup-line"><b>Distância até cliente:</b> ${dist ? dist + ' km aprox.' : 'Sem coordenada do cliente'}</div>
+        `).openPopup();
+        markers.push(veiculoMarker);
+
+        if (coordCliente) {
+          const line = L.polyline([coordVeiculo, coordCliente], {
+            color: '#00c6ff',
+            weight: 3,
+            dashArray: '8,8'
+          }).addTo(MAP_BI);
+          markers.push(line);
+        }
+      }
+
+      if (markers.length) {
+        const group = L.featureGroup(markers);
+        MAP_BI.fitBounds(group.getBounds(), {padding:[60,60]});
+      }
+
+      const count = document.getElementById('mapCount');
+      if (count) {
+        const dist = coordVeiculo && coordCliente ? haversineKmBI(coordVeiculo, coordCliente) : '';
+        count.innerHTML = `Veículo <span>${row.placa || '-'}</span> | Load <span>${row.load || '-'}</span> | Distância até cliente: <span>${dist ? dist + ' km aprox.' : 'sem coordenada'}</span>`;
+      }
+    }, 500);
+  };
+
+  // Sobrescreve renderTable para exibir Localização, Placa e Distância
+  const oldRenderLocBI = window.renderTable;
+  window.renderTable = function() {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const fl = (document.getElementById('filterLoad')?.value || '').toLowerCase().trim();
+    const fc = (document.getElementById('filterCliente')?.value || '').toLowerCase();
+    const fci = (document.getElementById('filterCidade')?.value || '').toLowerCase();
+    const fs = document.getElementById('filterStatus')?.value || '';
+    const fi = document.getElementById('filterInicio')?.value || '';
+    const fj = document.getElementById('filterJanela')?.value || '';
+    const fe = document.getElementById('filterEntrega')?.value || '';
+    const ft = document.getElementById('filterTransp')?.value || '';
+
+    let filtered = data.filter(d =>
+      (!fl || String(d.load || '').toLowerCase().includes(fl)) &&
+      (!fc || String(d.cliente || '').toLowerCase().includes(fc)) &&
+      (!fci || String(d.cidade || '').toLowerCase().includes(fci)) &&
+      (!fs || d.status === fs) &&
+      (!fi || onlyDateBI(d.inicio) === fi) &&
+      (!fj || onlyDateBI(d.janela) === fj) &&
+      (!fe || onlyDateBI(d.entrega) === fe) &&
+      (!ft || d.transportadora === ft)
+    );
+
+    if (typeof SORT_FIELD_FINAL !== 'undefined' && SORT_FIELD_FINAL) {
+      filtered = filtered.slice().sort((a,b) => {
+        const va = getSortValueFinal(a, SORT_FIELD_FINAL);
+        const vb = getSortValueFinal(b, SORT_FIELD_FINAL);
+        const result = String(va).localeCompare(String(vb), 'pt-BR', {numeric:true});
+        return SORT_ASC_FINAL ? result : -result;
+      });
+    }
+
+    const body = document.getElementById('tableBody');
+    if (!body) return;
+
+    body.innerHTML = filtered.map(d => {
+      const cfg = typeof statusClassFinal === 'function'
+        ? statusClassFinal(d.status)
+        : (STATUS_CONFIG[d.status] || {cls:'pill-alerta', short:d.status});
+
+      const coordVeiculo = d.coordVeiculo || extractLatLngBI(d.localizacaoVeiculo);
+      const localizacaoHtml = d.localizacaoVeiculo
+        ? `<span class="location-link" onclick="openVehicleOnMapBI('${String(d.load || '').replace(/'/g, "\\'")}')">${locationDisplayBI(d.localizacaoVeiculo)}</span>`
+        : '-';
+
+      return `<tr>
+        <td><span class="load-badge">${d.load || '-'}</span></td>
+        <td><span class="status-pill ${cfg.cls}">${cfg.short || d.status || '-'}</span></td>
+        <td style="font-weight:600;font-size:13px">${d.transportadora || '-'}</td>
+        <td style="font-size:13px">${d.cliente || '-'}</td>
+        <td style="font-weight:600;font-size:13px;color:var(--accent)">${d.cidade || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.inicio || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.janela || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow)">${d.entrega || '-'}</td>
+        <td style="font-size:13px">${localizacaoHtml}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px">${d.placa || '-'}</td>
+        <td>
+      <span class="distance-click" onclick="openVehicleOnMapBI('${String(d.load || '').replace(/'/g, "\'")}')">
+        CLIQUE AQUI
+      </span>
+    </td>
+      </tr>`;
+    }).join('');
+
+    const count = document.getElementById('tableCount');
+    if (count) count.innerHTML = `Exibindo <span>${filtered.length}</span> de <span>${data.length}</span> registros`;
+  };
+})();
+</script>
+
+
+<script id="corrigir-mapa-localizacao-veiculo-prioridade">
+(function(){
+  function extractLatLngClickBI(text) {
+    const s = String(text || '');
+
+    let m = s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+
+    m = s.match(/[?&](?:q|query)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+
+    m = s.match(/(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+
+    return null;
+  }
+
+  function haversineKmClickBI(a, b) {
+    if (!a || !b) return '';
+    const R = 6371;
+    const toRad = deg => deg * Math.PI / 180;
+    const dLat = toRad(b[0] - a[0]);
+    const dLon = toRad(b[1] - a[1]);
+    const lat1 = toRad(a[0]);
+    const lat2 = toRad(b[0]);
+
+    const h = Math.sin(dLat/2) ** 2 +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) ** 2;
+
+    return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+  }
+
+  async function getClientCoordClickBI(row) {
+    if (typeof geocodeCityBI === 'function') {
+      return await geocodeCityBI(row.cidade);
+    }
+
+    if (typeof normalizeCityBI === 'function' && typeof CITY_COORDS_BI !== 'undefined') {
+      const key = normalizeCityBI(row.cidade);
+      if (CITY_COORDS_BI[key]) return CITY_COORDS_BI[key];
+    }
+
+    return null;
+  }
+
+  window.openVehicleOnMapBI = async function(load) {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const row = data.find(x => String(x.load) === String(load));
+    if (!row) return;
+
+    const coordVeiculo = row.coordVeiculo || extractLatLngClickBI(row.localizacaoVeiculo);
+
+    if (!coordVeiculo) {
+      alert('Essa localização não possui coordenadas válidas para abrir no mapa.');
+      return;
+    }
+
+    if (typeof switchTab === 'function') switchTab('mapa');
+
+    setTimeout(async () => {
+      if (typeof initMapBI === 'function') initMapBI();
+      if (typeof MAP_BI === 'undefined' || !MAP_BI || typeof L === 'undefined') return;
+
+      if (typeof MAP_MARKERS_BI !== 'undefined') {
+        MAP_MARKERS_BI.forEach(m => MAP_BI.removeLayer(m));
+        MAP_MARKERS_BI = [];
+      }
+
+      const coordCliente = await getClientCoordClickBI(row);
+      const dist = coordCliente ? haversineKmClickBI(coordVeiculo, coordCliente) : '';
+
+      const veiculoMarker = L.circleMarker(coordVeiculo, {
+        radius: 13,
+        color: '#4fc3f7',
+        fillColor: '#4fc3f7',
+        fillOpacity: .95,
+        weight: 4
+      }).addTo(MAP_BI).bindPopup(`
+        <div class="map-popup-title">Localização atual do veículo</div>
+        <div class="map-popup-line"><b>Placa:</b> ${row.placa || '-'}</div>
+        <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        <div class="map-popup-line"><b>Status:</b> ${row.status || '-'}</div>
+        <div class="map-popup-line"><b>Localização:</b> ${row.localizacaoVeiculo || '-'}</div>
+        <div class="map-popup-line"><b>Cliente final:</b> ${row.cidade || '-'}</div>
+        <div class="map-popup-line"><b>Distância até cliente:</b> ${dist ? dist + ' km aprox.' : 'sem coordenada do cliente'}</div>
+      `).openPopup();
+
+      MAP_MARKERS_BI.push(veiculoMarker);
+
+      if (coordCliente) {
+        const clienteMarker = L.circleMarker(coordCliente, {
+          radius: 9,
+          color: '#ffd600',
+          fillColor: '#ffd600',
+          fillOpacity: .85,
+          weight: 2
+        }).addTo(MAP_BI).bindPopup(`
+          <div class="map-popup-title">Cliente final</div>
+          <div class="map-popup-line"><b>Cidade:</b> ${row.cidade || '-'}</div>
+          <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        `);
+
+        const linha = L.polyline([coordVeiculo, coordCliente], {
+          color: '#00c6ff',
+          weight: 3,
+          dashArray: '8,8'
+        }).addTo(MAP_BI);
+
+        MAP_MARKERS_BI.push(clienteMarker, linha);
+      }
+
+      // Principal: ao clicar na localização, o mapa abre centralizado no ponto clicado.
+      MAP_BI.setView(coordVeiculo, 10);
+
+      const count = document.getElementById('mapCount');
+      if (count) {
+        count.innerHTML = `Localização do veículo <span>${row.placa || '-'}</span> | Load <span>${row.load || '-'}</span> | Distância até cliente final: <span>${dist ? dist + ' km aprox.' : 'sem coordenada do cliente'}</span>`;
+      }
+
+      setTimeout(() => MAP_BI.invalidateSize(), 300);
+    }, 500);
+  };
+})();
+</script>
+
+
+<script id="mapa-por-nome-local-sem-coordenada">
+(function(){
+  async function geocodeAnyPlaceBI(text) {
+    const raw = String(text || '').trim();
+    if (!raw) return null;
+
+    if (typeof extractLatLngClickBI === 'function') {
+      const coord = extractLatLngClickBI(raw);
+      if (coord) return coord;
+    }
+
+    // Limpa textos muito longos, links e complementos para melhorar a busca
+    let query = raw
+      .replace(/https?:\/\/\S+/gi, '')
+      .replace(/localiza[cç][aã]o/gi, '')
+      .replace(/ve[ií]culo/gi, '')
+      .replace(/placa/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!query) query = raw;
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(query + ', Brasil')}`;
+      const resp = await fetch(url);
+      const json = await resp.json();
+
+      if (json && json[0]) {
+        return [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+      }
+    } catch(e) {}
+
+    return null;
+  }
+
+  function tempoEstimadoBI(km) {
+    if (!km) return 'sem cálculo';
+
+    // Estimativa simples rodoviária: média de 60 km/h para ter uma base operacional.
+    const horas = km / 60;
+    const h = Math.floor(horas);
+    const m = Math.round((horas - h) * 60);
+
+    if (h <= 0) return `${m} min aprox.`;
+    if (m <= 0) return `${h}h aprox.`;
+    return `${h}h${String(m).padStart(2,'0')} aprox.`;
+  }
+
+  function haversineKmNomeBI(a, b) {
+    if (!a || !b) return '';
+    const R = 6371;
+    const toRad = deg => deg * Math.PI / 180;
+    const dLat = toRad(b[0] - a[0]);
+    const dLon = toRad(b[1] - a[1]);
+    const lat1 = toRad(a[0]);
+    const lat2 = toRad(b[0]);
+
+    const h = Math.sin(dLat/2) ** 2 +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) ** 2;
+
+    return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+  }
+
+  async function getClientCoordNomeBI(row) {
+    if (typeof geocodeCityBI === 'function') {
+      return await geocodeCityBI(row.cidade);
+    }
+
+    if (typeof normalizeCityBI === 'function' && typeof CITY_COORDS_BI !== 'undefined') {
+      const key = normalizeCityBI(row.cidade);
+      if (CITY_COORDS_BI[key]) return CITY_COORDS_BI[key];
+    }
+
+    return await geocodeAnyPlaceBI(row.cidade);
+  }
+
+  window.openVehicleOnMapBI = async function(load) {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const row = data.find(x => String(x.load) === String(load));
+    if (!row) return;
+
+    if (typeof switchTab === 'function') switchTab('mapa');
+
+    setTimeout(async () => {
+      if (typeof initMapBI === 'function') initMapBI();
+      if (typeof MAP_BI === 'undefined' || !MAP_BI || typeof L === 'undefined') return;
+
+      if (typeof MAP_MARKERS_BI !== 'undefined') {
+        MAP_MARKERS_BI.forEach(m => MAP_BI.removeLayer(m));
+        MAP_MARKERS_BI = [];
+      }
+
+      const coordVeiculo = await geocodeAnyPlaceBI(row.localizacaoVeiculo);
+      const coordCliente = await getClientCoordNomeBI(row);
+
+      if (!coordVeiculo) {
+        const count = document.getElementById('mapCount');
+        if (count) {
+          count.innerHTML = `Não consegui localizar no mapa: <span>${row.localizacaoVeiculo || '-'}</span>. Tente informar cidade/UF ou endereço mais completo.`;
+        }
+        return;
+      }
+
+      const dist = coordCliente ? haversineKmNomeBI(coordVeiculo, coordCliente) : '';
+      const tempo = tempoEstimadoBI(dist);
+
+      const veiculoMarker = L.circleMarker(coordVeiculo, {
+        radius: 13,
+        color: '#4fc3f7',
+        fillColor: '#4fc3f7',
+        fillOpacity: .95,
+        weight: 4
+      }).addTo(MAP_BI).bindPopup(`
+        <div class="map-popup-title">Base da localização do veículo</div>
+        <div class="map-popup-line"><b>Placa:</b> ${row.placa || '-'}</div>
+        <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        <div class="map-popup-line"><b>Status:</b> ${row.status || '-'}</div>
+        <div class="map-popup-line"><b>Local informado:</b> ${row.localizacaoVeiculo || '-'}</div>
+        <div class="map-popup-line"><b>Cliente final:</b> ${row.cidade || '-'}</div>
+        <div class="map-popup-line"><b>Distância estimada:</b> ${dist ? dist + ' km aprox.' : 'sem cálculo'}</div>
+        <div class="map-popup-line"><b>Tempo estimado:</b> ${tempo}</div>
+      `).openPopup();
+
+      MAP_MARKERS_BI.push(veiculoMarker);
+
+      if (coordCliente) {
+        const clienteMarker = L.circleMarker(coordCliente, {
+          radius: 9,
+          color: '#ffd600',
+          fillColor: '#ffd600',
+          fillOpacity: .85,
+          weight: 2
+        }).addTo(MAP_BI).bindPopup(`
+          <div class="map-popup-title">Cliente final</div>
+          <div class="map-popup-line"><b>Cidade:</b> ${row.cidade || '-'}</div>
+          <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        `);
+
+        const linha = L.polyline([coordVeiculo, coordCliente], {
+          color: '#00c6ff',
+          weight: 3,
+          dashArray: '8,8'
+        }).addTo(MAP_BI);
+
+        MAP_MARKERS_BI.push(clienteMarker, linha);
+      }
+
+      MAP_BI.setView(coordVeiculo, 9);
+
+      const count = document.getElementById('mapCount');
+      if (count) {
+        count.innerHTML = `Local informado: <span>${row.localizacaoVeiculo || '-'}</span> | Placa <span>${row.placa || '-'}</span> | Distância até cliente: <span>${dist ? dist + ' km aprox.' : 'sem cálculo'}</span> | Tempo estimado: <span>${tempo}</span>`;
+      }
+
+      setTimeout(() => MAP_BI.invalidateSize(), 300);
+    }, 500);
+  };
+})();
+</script>
+
+
+<script id="limpar-localizacao-somente-cidade">
+(function(){
+  function limparLocalizacaoCidadeBI(texto) {
+    let s = String(texto || '').trim();
+
+    if (!s) return '';
+
+    // Remove distância no final: (0,01 Km), (10 KM), etc.
+    s = s.replace(/\s*\([^)]*km[^)]*\)\s*$/i, '').trim();
+
+    // Se vier com vírgulas, pega a última parte que tenha Cidade/UF/BRASIL
+    const partes = s.split(',').map(p => p.trim()).filter(Boolean);
+    const parteCidade = partes.find(p => /\/[A-Z]{2}\/BRASIL/i.test(p)) || partes[partes.length - 1];
+
+    if (parteCidade) s = parteCidade;
+
+    // Remove qualquer início antes da cidade caso ainda tenha texto
+    const match = s.match(/([A-ZÀ-ÿ0-9\s.'-]+\/[A-Z]{2}\/BRASIL)/i);
+    if (match) s = match[1].trim();
+
+    return s;
+  }
+
+  const oldParseLocCleanBI = window.parseWorkbookTodosRegistrosBI;
+
+  if (typeof oldParseLocCleanBI === 'function') {
+    window.parseWorkbookTodosRegistrosBI = function(arrayBuffer) {
+      oldParseLocCleanBI(arrayBuffer);
+
+      const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+        ? ALL_ROWS_BI
+        : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+      data.forEach(item => {
+        if (item.localizacaoVeiculo) {
+          item.localizacaoVeiculo = limparLocalizacaoCidadeBI(item.localizacaoVeiculo);
+        }
+      });
+
+      if (typeof renderTable === 'function') renderTable();
+    };
+  }
+
+  // Corrige dados já carregados na tela
+  function limparDadosAtuaisBI() {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    data.forEach(item => {
+      if (item.localizacaoVeiculo) {
+        item.localizacaoVeiculo = limparLocalizacaoCidadeBI(item.localizacaoVeiculo);
+      }
+    });
+
+    if (typeof renderTable === 'function') renderTable();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(limparDadosAtuaisBI, 500);
+  });
+
+  window.limparLocalizacaoCidadeBI = limparLocalizacaoCidadeBI;
+})();
+</script>
+
+
+<script id="correcao-geocode-cidade-uf">
+(function(){
+  async function geocodeCidadeUFBI(text) {
+    let raw = String(text || '').trim().toUpperCase();
+
+    if (!raw) return null;
+
+    // RIBEIRAO PRETO/SP/BRASIL -> RIBEIRAO PRETO, SP, BRASIL
+    raw = raw
+      .replace(/\/BRASIL/gi, ', BRASIL')
+      .replace(/\/([A-Z]{2}),/gi, ', $1,')
+      .replace(/\/([A-Z]{2})$/gi, ', $1');
+
+    // Se ainda existir "/", converte para vírgula
+    raw = raw.replace(/\//g, ', ');
+
+    // remove múltiplas vírgulas/espaços
+    raw = raw.replace(/\s*,\s*/g, ', ').replace(/\s+/g, ' ').trim();
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(raw)}`;
+
+      const resp = await fetch(url, {
+        headers: {
+          'Accept-Language': 'pt-BR'
+        }
+      });
+
+      const json = await resp.json();
+
+      if (json && json[0]) {
+        return [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+      }
+    } catch(e) {}
+
+    return null;
+  }
+
+  // Sobrescreve a busca do local do veículo
+  if (typeof geocodeAnyPlaceBI !== 'undefined') {
+    window.geocodeAnyPlaceBI = geocodeCidadeUFBI;
+  }
+
+  // Sobrescreve abertura do mapa
+  const oldOpenVehicleOnMapBI = window.openVehicleOnMapBI;
+
+  window.openVehicleOnMapBI = async function(load) {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const row = data.find(x => String(x.load) === String(load));
+    if (!row) return;
+
+    // tenta já com cidade limpa
+    row.localizacaoVeiculo = String(row.localizacaoVeiculo || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return oldOpenVehicleOnMapBI(load);
+  };
+})();
+</script>
+
+
+<script id="cidade-estado-completo">
+(function(){
+  const UF_MAP_BI = {
+    AC:'Acre', AL:'Alagoas', AP:'Amapa', AM:'Amazonas', BA:'Bahia',
+    CE:'Ceara', DF:'Distrito Federal', ES:'Espirito Santo', GO:'Goias',
+    MA:'Maranhao', MT:'Mato Grosso', MS:'Mato Grosso do Sul',
+    MG:'Minas Gerais', PA:'Para', PB:'Paraiba', PR:'Parana',
+    PE:'Pernambuco', PI:'Piaui', RJ:'Rio de Janeiro',
+    RN:'Rio Grande do Norte', RS:'Rio Grande do Sul',
+    RO:'Rondonia', RR:'Roraima', SC:'Santa Catarina',
+    SP:'Sao Paulo', SE:'Sergipe', TO:'Tocantins'
+  };
+
+  function converterCidadeEstadoBI(texto) {
+    let s = String(texto || '').trim().toUpperCase();
+
+    // remove /BRASIL
+    s = s.replace(/\/BRASIL/gi, '');
+
+    const m = s.match(/^(.+?)\/([A-Z]{2})$/);
+
+    if (m) {
+      const cidade = m[1].trim();
+      const uf = m[2].trim();
+      const estado = UF_MAP_BI[uf] || uf;
+
+      return `${cidade}, ${estado}`;
+    }
+
+    return s.replace(/\//g, ', ');
+  }
+
+  // limpa dados atuais
+  function aplicarConversaoBI() {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    data.forEach(item => {
+      if (item.localizacaoVeiculo) {
+        item.localizacaoVeiculo = converterCidadeEstadoBI(item.localizacaoVeiculo);
+      }
+    });
+
+    if (typeof renderTable === 'function') renderTable();
+  }
+
+  // intercepta importação
+  const oldParseCidadeEstadoBI = window.parseWorkbookTodosRegistrosBI;
+
+  if (typeof oldParseCidadeEstadoBI === 'function') {
+    window.parseWorkbookTodosRegistrosBI = function(arrayBuffer) {
+      oldParseCidadeEstadoBI(arrayBuffer);
+      aplicarConversaoBI();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(aplicarConversaoBI, 500);
+  });
+})();
+</script>
+
+
+<script id="cidade-com-uf-na-coluna">
+(function(){
+  function formatarCidadeUFBI(texto) {
+    let s = String(texto || '').trim();
+
+    if (!s) return '';
+
+    // remove /BRASIL
+    s = s.replace(/\/BRASIL/gi, '');
+
+    // Se já estiver CIDADE/UF mantém
+    const match = s.match(/^(.+?)\/([A-Z]{2})$/i);
+    if (match) {
+      return `${match[1].trim()}/${match[2].toUpperCase()}`;
+    }
+
+    // Cidade, Estado -> Cidade/UF
+    const estados = {
+      'SAO PAULO':'SP','SÃO PAULO':'SP',
+      'RIO DE JANEIRO':'RJ',
+      'MINAS GERAIS':'MG',
+      'PARANA':'PR','PARANÁ':'PR',
+      'SANTA CATARINA':'SC',
+      'RIO GRANDE DO SUL':'RS',
+      'BAHIA':'BA',
+      'GOIAS':'GO','GOIÁS':'GO',
+      'ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES',
+      'MATO GROSSO':'MT',
+      'MATO GROSSO DO SUL':'MS',
+      'PERNAMBUCO':'PE',
+      'CEARA':'CE','CEARÁ':'CE',
+      'PARA':'PA','PARÁ':'PA',
+      'AMAZONAS':'AM',
+      'DISTRITO FEDERAL':'DF'
+    };
+
+    const parts = s.split(',').map(x => x.trim()).filter(Boolean);
+
+    if (parts.length >= 2) {
+      const cidade = parts[0];
+      const estado = parts[1].toUpperCase();
+      const uf = estados[estado] || estado;
+
+      if (uf.length === 2) {
+        return `${cidade}/${uf}`;
+      }
+    }
+
+    return s;
+  }
+
+  function aplicarCidadeUFBI() {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    data.forEach(item => {
+      if (item.cidade) {
+        item.cidade = formatarCidadeUFBI(item.cidade);
+      }
+    });
+
+    if (typeof renderTable === 'function') renderTable();
+  }
+
+  const oldParseCidadeUFBI = window.parseWorkbookTodosRegistrosBI;
+
+  if (typeof oldParseCidadeUFBI === 'function') {
+    window.parseWorkbookTodosRegistrosBI = function(arrayBuffer) {
+      oldParseCidadeUFBI(arrayBuffer);
+      aplicarCidadeUFBI();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(aplicarCidadeUFBI, 500);
+  });
+})();
+</script>
+
+
+<script id="corrigir-cidade-uf-destino">
+(function(){
+  const UF_ESTADOS_BI = {
+    'SAO PAULO':'SP','SÃO PAULO':'SP',
+    'RIO DE JANEIRO':'RJ',
+    'MINAS GERAIS':'MG',
+    'PARANA':'PR','PARANÁ':'PR',
+    'SANTA CATARINA':'SC',
+    'RIO GRANDE DO SUL':'RS',
+    'BAHIA':'BA',
+    'GOIAS':'GO','GOIÁS':'GO',
+    'ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES',
+    'MATO GROSSO':'MT',
+    'MATO GROSSO DO SUL':'MS',
+    'PERNAMBUCO':'PE',
+    'CEARA':'CE','CEARÁ':'CE',
+    'PARA':'PA','PARÁ':'PA',
+    'AMAZONAS':'AM',
+    'DISTRITO FEDERAL':'DF',
+    'RONDONIA':'RO','RONDÔNIA':'RO',
+    'MARANHAO':'MA','MARANHÃO':'MA',
+    'PIAUI':'PI','PIAUÍ':'PI',
+    'SERGIPE':'SE',
+    'ALAGOAS':'AL',
+    'PARAIBA':'PB','PARAÍBA':'PB',
+    'RIO GRANDE DO NORTE':'RN',
+    'TOCANTINS':'TO',
+    'ACRE':'AC',
+    'AMAPA':'AP','AMAPÁ':'AP',
+    'RORAIMA':'RR'
+  };
+
+  function formatCidadeUFFinalBI(texto) {
+    let s = String(texto || '').trim();
+
+    if (!s) return '';
+
+    s = s.replace(/\/BRASIL/gi, '').trim();
+
+    // já está correto
+    if (/\/[A-Z]{2}$/i.test(s)) {
+      return s.toUpperCase();
+    }
+
+    // GOIANIA, GOIAS -> GOIANIA/GO
+    const parts = s.split(',').map(x => x.trim()).filter(Boolean);
+
+    if (parts.length >= 2) {
+      const cidade = parts[0].toUpperCase();
+      const estado = parts[1].toUpperCase();
+      const uf = UF_ESTADOS_BI[estado];
+
+      if (uf) return `${cidade}/${uf}`;
+    }
+
+    // Se vier somente cidade, tenta inferir pelas mais comuns da operação
+    const inferencia = {
+      'GOIANIA':'GO',
+      'DUQUE DE CAXIAS':'RJ',
+      'CAMACARI':'BA',
+      'CAMAÇARI':'BA',
+      'RIBEIRAO PRETO':'SP',
+      'RIBEIRÃO PRETO':'SP',
+      'CURITIBA':'PR',
+      'LONDRINA':'PR',
+      'CAJAMAR':'SP',
+      'OSASCO':'SP',
+      'CONTAGEM':'MG',
+      'JUNDIAI':'SP',
+      'JUNDIAÍ':'SP',
+      'LOUVEIRA':'SP',
+      'BIGUACU':'SC',
+      'BIGUAÇU':'SC'
+    };
+
+    const key = s.toUpperCase();
+    if (inferencia[key]) {
+      return `${key}/${inferencia[key]}`;
+    }
+
+    return s.toUpperCase();
+  }
+
+  function aplicarCidadeUFFinalBI() {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    data.forEach(item => {
+      if (item.cidade) {
+        item.cidade = formatCidadeUFFinalBI(item.cidade);
+      }
+    });
+
+    if (typeof renderTable === 'function') renderTable();
+  }
+
+  const oldParseFinalUFBI = window.parseWorkbookTodosRegistrosBI;
+
+  if (typeof oldParseFinalUFBI === 'function') {
+    window.parseWorkbookTodosRegistrosBI = function(arrayBuffer) {
+      oldParseFinalUFBI(arrayBuffer);
+      setTimeout(aplicarCidadeUFFinalBI, 100);
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(aplicarCidadeUFFinalBI, 700);
+  });
+})();
+</script>
+
+
+<script id="mapa-somente-ao-clicar-localizacao">
+(function(){
+  function limparMapaBI() {
+    if (typeof MAP_BI !== 'undefined' && MAP_BI && typeof MAP_MARKERS_BI !== 'undefined') {
+      MAP_MARKERS_BI.forEach(m => MAP_BI.removeLayer(m));
+      MAP_MARKERS_BI = [];
+      MAP_BI.setView([-14.2350, -51.9253], 4);
+    }
+
+    const count = document.getElementById('mapCount');
+    if (count) count.innerHTML = 'Clique em uma localização do veículo na tabela para visualizar no mapa.';
+  }
+
+  async function geocodeCidadeSimplesBI(texto) {
+    let s = String(texto || '').trim();
+
+    if (!s) return null;
+
+    // RIBEIRAO PRETO/SP, RIBEIRAO PRETO/SP/BRASIL, RIBEIRAO PRETO, SAO PAULO
+    s = s.replace(/\/BRASIL/gi, '');
+    s = s.replace(/\s*\([^)]*\)\s*$/g, '');
+    s = s.replace(/\//g, ', ');
+    s = s.replace(/\s+/g, ' ').trim();
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(s + ', Brasil')}`;
+      const resp = await fetch(url);
+      const json = await resp.json();
+
+      if (json && json[0]) {
+        return [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+      }
+    } catch(e) {}
+
+    return null;
+  }
+
+  function distanciaKmBI(a, b) {
+    if (!a || !b) return '';
+    const R = 6371;
+    const rad = v => v * Math.PI / 180;
+    const dLat = rad(b[0] - a[0]);
+    const dLon = rad(b[1] - a[1]);
+    const lat1 = rad(a[0]);
+    const lat2 = rad(b[0]);
+
+    const h = Math.sin(dLat/2) ** 2 +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) ** 2;
+
+    return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+  }
+
+  function tempoAproxBI(km) {
+    if (!km) return 'sem cálculo';
+    const horas = km / 60;
+    const h = Math.floor(horas);
+    const m = Math.round((horas - h) * 60);
+    if (h <= 0) return `${m} min aprox.`;
+    return `${h}h${String(m).padStart(2,'0')} aprox.`;
+  }
+
+  function limparFiltrosMapaBI() {
+    const status = document.getElementById('mapStatusFilter');
+    const transp = document.getElementById('mapTranspFilter');
+    if (status) status.value = '';
+    if (transp) transp.value = '';
+  }
+
+  // O mapa não deve montar todos os pontos sozinho.
+  window.updateMapBI = async function() {
+    limparMapaBI();
+  };
+
+  window.openVehicleOnMapBI = async function(load) {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const row = data.find(x => String(x.load) === String(load));
+    if (!row) return;
+
+    limparFiltrosMapaBI();
+
+    if (typeof switchTab === 'function') switchTab('mapa');
+
+    setTimeout(async () => {
+      if (typeof initMapBI === 'function') initMapBI();
+      if (typeof MAP_BI === 'undefined' || !MAP_BI || typeof L === 'undefined') return;
+
+      limparMapaBI();
+
+      const localVeiculo = row.localizacaoVeiculo || '';
+      const cidadeCliente = row.cidade || '';
+
+      const coordVeiculo = await geocodeCidadeSimplesBI(localVeiculo);
+      const coordCliente = await geocodeCidadeSimplesBI(cidadeCliente);
+
+      const count = document.getElementById('mapCount');
+
+      if (!coordVeiculo) {
+        if (count) {
+          count.innerHTML = `Não consegui localizar no mapa: <span>${localVeiculo || '-'}</span>.`;
+        }
+        return;
+      }
+
+      const km = coordCliente ? distanciaKmBI(coordVeiculo, coordCliente) : '';
+      const tempo = tempoAproxBI(km);
+
+      const veiculoMarker = L.circleMarker(coordVeiculo, {
+        radius: 14,
+        color: '#4fc3f7',
+        fillColor: '#4fc3f7',
+        fillOpacity: .95,
+        weight: 4
+      }).addTo(MAP_BI).bindPopup(`
+        <div class="map-popup-title">Localização do veículo</div>
+        <div class="map-popup-line"><b>Placa:</b> ${row.placa || '-'}</div>
+        <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        <div class="map-popup-line"><b>Local:</b> ${localVeiculo || '-'}</div>
+        <div class="map-popup-line"><b>Cliente:</b> ${cidadeCliente || '-'}</div>
+        <div class="map-popup-line"><b>Distância:</b> ${km ? km + ' km aprox.' : 'sem cálculo'}</div>
+        <div class="map-popup-line"><b>Tempo:</b> ${tempo}</div>
+      `).openPopup();
+
+      MAP_MARKERS_BI.push(veiculoMarker);
+
+      if (coordCliente) {
+        const clienteMarker = L.circleMarker(coordCliente, {
+          radius: 10,
+          color: '#ffd600',
+          fillColor: '#ffd600',
+          fillOpacity: .85,
+          weight: 2
+        }).addTo(MAP_BI).bindPopup(`
+          <div class="map-popup-title">Cliente final</div>
+          <div class="map-popup-line"><b>Cidade:</b> ${cidadeCliente || '-'}</div>
+          <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        `);
+
+        const linha = L.polyline([coordVeiculo, coordCliente], {
+          color: '#00c6ff',
+          weight: 3,
+          dashArray: '8,8'
+        }).addTo(MAP_BI);
+
+        MAP_MARKERS_BI.push(clienteMarker, linha);
+      }
+
+      MAP_BI.setView(coordVeiculo, 9);
+
+      if (count) {
+        count.innerHTML = `Placa <span>${row.placa || '-'}</span> | Localização: <span>${localVeiculo || '-'}</span> | Cliente: <span>${cidadeCliente || '-'}</span> | Distância: <span>${km ? km + ' km aprox.' : 'sem cálculo'}</span> | Tempo: <span>${tempo}</span>`;
+      }
+
+      setTimeout(() => MAP_BI.invalidateSize(), 300);
+    }, 500);
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(limparMapaBI, 800);
+  });
+})();
+</script>
+
+
+<script id="correcao-cidades-mapa-base-interna">
+(function(){
+  const COORDS_CIDADE_UF_INTERNA_BI = {"RIBEIRAO PRETO/SP": [-21.1775, -47.8103], "GOIANIA/GO": [-16.6869, -49.2648], "DUQUE DE CAXIAS/RJ": [-22.7856, -43.3117], "CAMACARI/BA": [-12.6972, -38.3246], "SAO PAULO/SP": [-23.5505, -46.6333], "CAJAMAR/SP": [-23.3569, -46.8761], "JUNDIAI/SP": [-23.1857, -46.8978], "CURITIBA/PR": [-25.4296, -49.2713], "CONTAGEM/MG": [-19.9317, -44.0536], "BRASILIA/DF": [-15.7939, -47.8828], "ITAJAI/SC": [-26.9101, -48.6705], "BIGUACU/SC": [-27.4949, -48.6553], "ALHANDRA/PB": [-7.4386, -34.9144], "BENEVIDES/PA": [-1.3618, -48.2447], "CABO DE SANTO AGOSTINHO/PE": [-8.2833, -35.0333], "CANDEIAS/BA": [-12.6716, -38.5472], "CERRO LARGO/RS": [-28.1486, -54.7381], "CUIABA/MT": [-15.6014, -56.0979], "IPAMERI/GO": [-17.7215, -48.1597], "JABOATAO DOS GUARARAPES/PE": [-8.1128, -35.0147], "LONDRINA/PR": [-23.3045, -51.1696], "LOUVEIRA/SP": [-23.0864, -46.9507], "MACAPA/AP": [0.0349, -51.0694], "MARACANAU/CE": [-3.8667, -38.625], "NOVA SANTA RITA/RS": [-29.8525, -51.2837], "OSASCO/SP": [-23.5329, -46.7918], "SAO BERNARDO DO CAMPO/SP": [-23.6914, -46.5646], "SAO JOSE DOS PINHAIS/PR": [-25.5313, -49.2031], "SAPIRANGA/RS": [-29.6381, -51.0069], "BARRA VELHA/SC": [-26.637, -48.6938], "PORTO BELO/SC": [-27.1578, -48.5531], "SALTO/SP": [-23.2008, -47.2869], "SERRA/ES": [-20.1286, -40.3078], "JUIZ DE FORA/MG": [-21.7622, -43.3434], "BETIM/MG": [-19.9678, -44.1983], "UBERLANDIA/MG": [-18.9146, -48.2754], "CAMPINAS/SP": [-22.9056, -47.0608], "SOROCABA/SP": [-23.5015, -47.4526], "RIBEIRAO DAS NEVES/MG": [-19.7669, -44.0867]};
+
+  const UF_ESTADO_BUSCA_BI = {
+    AC:'Acre', AL:'Alagoas', AP:'Amapa', AM:'Amazonas', BA:'Bahia',
+    CE:'Ceara', DF:'Distrito Federal', ES:'Espirito Santo', GO:'Goias',
+    MA:'Maranhao', MT:'Mato Grosso', MS:'Mato Grosso do Sul',
+    MG:'Minas Gerais', PA:'Para', PB:'Paraiba', PR:'Parana',
+    PE:'Pernambuco', PI:'Piaui', RJ:'Rio de Janeiro',
+    RN:'Rio Grande do Norte', RS:'Rio Grande do Sul',
+    RO:'Rondonia', RR:'Roraima', SC:'Santa Catarina',
+    SP:'Sao Paulo', SE:'Sergipe', TO:'Tocantins'
+  };
+
+  function normalizarChaveCidadeBI(texto) {
+    return String(texto || '')
+      .toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/\/BRASIL/g, '')
+      .replace(/\s*\([^)]*\)\s*$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function montarBuscaCidadeEstadoBI(texto) {
+    let s = String(texto || '').trim()
+      .replace(/\/BRASIL/gi, '')
+      .replace(/\s*\([^)]*\)\s*$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // CIDADE/UF -> CIDADE, ESTADO
+    const m = s.match(/^(.+?)\/([A-Z]{2})$/i);
+    if (m) {
+      const cidade = m[1].trim();
+      const uf = m[2].toUpperCase();
+      const estado = UF_ESTADO_BUSCA_BI[uf] || uf;
+      return `${cidade}, ${estado}, Brasil`;
+    }
+
+    // CIDADE, ESTADO
+    if (s.includes(',')) return `${s}, Brasil`;
+
+    return `${s}, Brasil`;
+  }
+
+  async function geocodeCidadeSimplesBI(texto) {
+    const chave = normalizarChaveCidadeBI(texto);
+
+    if (COORDS_CIDADE_UF_INTERNA_BI[chave]) {
+      return COORDS_CIDADE_UF_INTERNA_BI[chave];
+    }
+
+    // Se veio com estado completo, tenta transformar para chave CIDADE/UF conhecida
+    for (const [key, coord] of Object.entries(COORDS_CIDADE_UF_INTERNA_BI)) {
+      const cidadeKey = key.split('/')[0];
+      if (chave.startsWith(cidadeKey)) return coord;
+    }
+
+    const busca = montarBuscaCidadeEstadoBI(texto);
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(busca)}`;
+      const resp = await fetch(url);
+      const json = await resp.json();
+
+      if (json && json[0]) {
+        return [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+      }
+    } catch(e) {}
+
+    return null;
+  }
+
+  // sobrescreve a função usada no clique da localização
+  window.geocodeCidadeSimplesBI = geocodeCidadeSimplesBI;
+
+  // sobrescreve a abertura do mapa para usar a busca corrigida
+  window.openVehicleOnMapBI = async function(load) {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const row = data.find(x => String(x.load) === String(load));
+    if (!row) return;
+
+    if (typeof switchTab === 'function') switchTab('mapa');
+
+    setTimeout(async () => {
+      if (typeof initMapBI === 'function') initMapBI();
+      if (typeof MAP_BI === 'undefined' || !MAP_BI || typeof L === 'undefined') return;
+
+      if (typeof MAP_MARKERS_BI !== 'undefined') {
+        MAP_MARKERS_BI.forEach(m => MAP_BI.removeLayer(m));
+        MAP_MARKERS_BI = [];
+      }
+
+      const localVeiculo = row.localizacaoVeiculo || '';
+      const cidadeCliente = row.cidade || '';
+
+      const coordVeiculo = await geocodeCidadeSimplesBI(localVeiculo);
+      const coordCliente = await geocodeCidadeSimplesBI(cidadeCliente);
+
+      const count = document.getElementById('mapCount');
+
+      if (!coordVeiculo) {
+        if (count) {
+          count.innerHTML = `Não consegui localizar no mapa: <span>${localVeiculo || '-'}</span>. Verifique se está no formato CIDADE/UF.`;
+        }
+        return;
+      }
+
+      function distanciaKm(a, b) {
+        if (!a || !b) return '';
+        const R = 6371;
+        const rad = v => v * Math.PI / 180;
+        const dLat = rad(b[0] - a[0]);
+        const dLon = rad(b[1] - a[1]);
+        const lat1 = rad(a[0]);
+        const lat2 = rad(b[0]);
+        const h = Math.sin(dLat/2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2) ** 2;
+        return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+      }
+
+      function tempo(km) {
+        if (!km) return 'sem cálculo';
+        const horas = km / 60;
+        const h = Math.floor(horas);
+        const m = Math.round((horas - h) * 60);
+        if (h <= 0) return `${m} min aprox.`;
+        return `${h}h${String(m).padStart(2,'0')} aprox.`;
+      }
+
+      const km = coordCliente ? distanciaKm(coordVeiculo, coordCliente) : '';
+      const tempoTxt = tempo(km);
+
+      const veiculoMarker = L.circleMarker(coordVeiculo, {
+        radius: 14,
+        color: '#4fc3f7',
+        fillColor: '#4fc3f7',
+        fillOpacity: .95,
+        weight: 4
+      }).addTo(MAP_BI).bindPopup(`
+        <div class="map-popup-title">Localização do veículo</div>
+        <div class="map-popup-line"><b>Placa:</b> ${row.placa || '-'}</div>
+        <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        <div class="map-popup-line"><b>Local:</b> ${localVeiculo || '-'}</div>
+        <div class="map-popup-line"><b>Cliente:</b> ${cidadeCliente || '-'}</div>
+        <div class="map-popup-line"><b>Distância:</b> ${km ? km + ' km aprox.' : 'sem cálculo'}</div>
+        <div class="map-popup-line"><b>Tempo:</b> ${tempoTxt}</div>
+      `).openPopup();
+
+      MAP_MARKERS_BI.push(veiculoMarker);
+
+      if (coordCliente) {
+        const clienteMarker = L.circleMarker(coordCliente, {
+          radius: 10,
+          color: '#ffd600',
+          fillColor: '#ffd600',
+          fillOpacity: .85,
+          weight: 2
+        }).addTo(MAP_BI).bindPopup(`
+          <div class="map-popup-title">Cliente final</div>
+          <div class="map-popup-line"><b>Cidade:</b> ${cidadeCliente || '-'}</div>
+          <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        `);
+
+        const linha = L.polyline([coordVeiculo, coordCliente], {
+          color: '#00c6ff',
+          weight: 3,
+          dashArray: '8,8'
+        }).addTo(MAP_BI);
+
+        MAP_MARKERS_BI.push(clienteMarker, linha);
+      }
+
+      MAP_BI.setView(coordVeiculo, 9);
+
+      if (count) {
+        
+count.innerHTML = `
+  <div class="map-info-grid">
+    <div class="map-info-item">
+      <div class="map-info-label">Load</div>
+      <div class="map-info-value map-info-highlight">${row.load || '-'}</div>
+    </div>
+
+    <div class="map-info-item">
+      <div class="map-info-label">Placa</div>
+      <div class="map-info-value">${row.placa || '-'}</div>
+    </div>
+
+    <div class="map-info-item">
+      <div class="map-info-label">Cliente</div>
+      <div class="map-info-value">${row.cliente || '-'}</div>
+    </div>
+
+    <div class="map-info-item">
+      <div class="map-info-label">Localização Atual</div>
+      <div class="map-info-value">${localVeiculo || '-'}</div>
+    </div>
+
+    <div class="map-info-item">
+      <div class="map-info-label">Destino</div>
+      <div class="map-info-value">${cidadeCliente || '-'}</div>
+    </div>
+
+    <div class="map-info-item">
+      <div class="map-info-label">Distância</div>
+      <div class="map-info-value map-info-green">${km ? km + ' km aprox.' : 'sem cálculo'}</div>
+    </div>
+
+    <div class="map-info-item">
+      <div class="map-info-label">Tempo Estimado</div>
+      <div class="map-info-value map-info-yellow">${tempoTxt}</div>
+    </div>
+  </div>
+`;
+
+      }
+
+      setTimeout(() => MAP_BI.invalidateSize(), 300);
+    }, 500);
+  };
+})();
+</script>
+
+
+<script id="limpeza-filtros-mapa-ui">
+(function(){
+  document.addEventListener('DOMContentLoaded', () => {
+    const status = document.getElementById('mapStatusFilter');
+    const transp = document.getElementById('mapTranspFilter');
+
+    if (status && status.parentElement) {
+      const row = status.closest('.filter-row');
+      if (row) row.remove();
+    }
+
+    const count = document.getElementById('mapCount');
+    if (count && !count.innerHTML.trim()) {
+      count.innerHTML = 'Clique em uma localização do veículo na tabela para visualizar no mapa.';
+    }
+  });
+})();
+</script>
+
+
+<script id="corrigir-mapa-visibilidade">
+(function(){
+  const oldSwitchTabAny = window.switchTab;
+
+  window.switchTab = function(tab) {
+    const ids = ['painel','transportadora','clientes','mapa'];
+
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', ids[i] === tab);
+    });
+
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'tab-' + tab);
+    });
+
+    if (tab === 'mapa') {
+      setTimeout(() => {
+        if (typeof initMapBI === 'function') initMapBI();
+        if (typeof MAP_BI !== 'undefined' && MAP_BI) {
+          MAP_BI.invalidateSize();
+        }
+      }, 300);
+    }
+  };
+
+  // Garante que o mapa exista quando clicar na localização
+  const oldOpenVehicleFinal = window.openVehicleOnMapBI;
+
+  window.openVehicleOnMapBI = async function(load) {
+    switchTab('mapa');
+
+    setTimeout(async () => {
+      if (typeof initMapBI === 'function') initMapBI();
+      if (typeof MAP_BI !== 'undefined' && MAP_BI) MAP_BI.invalidateSize();
+
+      if (typeof oldOpenVehicleFinal === 'function') {
+        oldOpenVehicleFinal(load);
+      }
+    }, 300);
+  };
+})();
+</script>
+
+
+<script id="mapa-sem-posicao-veiculo-mostra-cliente">
+(function(){
+  async function geocodeClienteFallbackBI(texto) {
+    if (typeof geocodeCidadeSimplesBI === 'function') {
+      return await geocodeCidadeSimplesBI(texto);
+    }
+
+    try {
+      let s = String(texto || '').replace(/\/BRASIL/gi, '').replace(/\//g, ', ').trim();
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(s + ', Brasil')}`;
+      const resp = await fetch(url);
+      const json = await resp.json();
+
+      if (json && json[0]) return [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+    } catch(e) {}
+
+    return null;
+  }
+
+  window.openVehicleOnMapBI = async function(load) {
+    const data = (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length)
+      ? ALL_ROWS_BI
+      : (typeof atrasoData !== 'undefined' ? atrasoData : []);
+
+    const row = data.find(x => String(x.load) === String(load));
+    if (!row) return;
+
+    if (typeof switchTab === 'function') switchTab('mapa');
+
+    setTimeout(async () => {
+      if (typeof initMapBI === 'function') initMapBI();
+      if (typeof MAP_BI === 'undefined' || !MAP_BI || typeof L === 'undefined') return;
+
+      if (typeof MAP_MARKERS_BI !== 'undefined') {
+        MAP_MARKERS_BI.forEach(m => MAP_BI.removeLayer(m));
+        MAP_MARKERS_BI = [];
+      }
+
+      const localVeiculo = String(row.localizacaoVeiculo || '').trim();
+      const cidadeCliente = String(row.cidade || '').trim();
+
+      const coordVeiculo = localVeiculo ? await geocodeClienteFallbackBI(localVeiculo) : null;
+      const coordCliente = await geocodeClienteFallbackBI(cidadeCliente);
+
+      const count = document.getElementById('mapCount');
+
+      if (!coordVeiculo && coordCliente) {
+        const clienteMarker = L.circleMarker(coordCliente, {
+          radius: 13,
+          color: '#ffd600',
+          fillColor: '#ffd600',
+          fillOpacity: .9,
+          weight: 4
+        }).addTo(MAP_BI).bindPopup(`
+          <div class="map-popup-title">Cliente final</div>
+          <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+          <div class="map-popup-line"><b>Cliente:</b> ${row.cliente || '-'}</div>
+          <div class="map-popup-line"><b>Cidade:</b> ${cidadeCliente || '-'}</div>
+          <div class="map-popup-line"><b>Status:</b> ${row.status || '-'}</div>
+          <div class="map-popup-line"><b>Posição do veículo:</b> sem posição informada</div>
+        `).openPopup();
+
+        MAP_MARKERS_BI.push(clienteMarker);
+        MAP_BI.setView(coordCliente, 9);
+
+        if (count) {
+          count.innerHTML = `
+            <div class="map-info-grid">
+              <div class="map-info-item">
+                <div class="map-info-label">Load</div>
+                <div class="map-info-value map-info-highlight">${row.load || '-'}</div>
+              </div>
+
+              <div class="map-info-item">
+                <div class="map-info-label">Placa</div>
+                <div class="map-info-value">${row.placa || '-'}</div>
+              </div>
+
+              <div class="map-info-item">
+                <div class="map-info-label">Cliente</div>
+                <div class="map-info-value">${row.cliente || '-'}</div>
+              </div>
+
+              <div class="map-info-item">
+                <div class="map-info-label">Status</div>
+                <div class="map-info-value map-info-yellow">${row.status || '-'}</div>
+              </div>
+
+              <div class="map-info-item">
+                <div class="map-info-label">Posição do Veículo</div>
+                <div class="map-info-value">Sem posição informada</div>
+              </div>
+
+              <div class="map-info-item">
+                <div class="map-info-label">Local exibido no mapa</div>
+                <div class="map-info-value">${cidadeCliente || '-'}</div>
+              </div>
+
+              <div class="map-info-item">
+                <div class="map-info-label">Distância</div>
+                <div class="map-info-value">Sem cálculo</div>
+              </div>
+
+              <div class="map-info-item">
+                <div class="map-info-label">Tempo Estimado</div>
+                <div class="map-info-value">Sem cálculo</div>
+              </div>
+            </div>
+          `;
+        }
+
+        setTimeout(() => MAP_BI.invalidateSize(), 300);
+        return;
+      }
+
+      if (!coordVeiculo && !coordCliente) {
+        if (count) {
+          count.innerHTML = `Não consegui localizar o veículo nem o cliente no mapa. Load <span>${row.load || '-'}</span>`;
+        }
+        return;
+      }
+
+      // Se tiver localização do veículo, usa a lógica normal com veículo + cliente.
+      const coordBase = coordVeiculo || coordCliente;
+
+      function distanciaKm(a, b) {
+        if (!a || !b) return '';
+        const R = 6371;
+        const rad = v => v * Math.PI / 180;
+        const dLat = rad(b[0] - a[0]);
+        const dLon = rad(b[1] - a[1]);
+        const lat1 = rad(a[0]);
+        const lat2 = rad(b[0]);
+        const h = Math.sin(dLat/2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2) ** 2;
+        return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+      }
+
+      function tempo(km) {
+        if (!km) return 'sem cálculo';
+        const horas = km / 60;
+        const h = Math.floor(horas);
+        const m = Math.round((horas - h) * 60);
+        if (h <= 0) return `${m} min aprox.`;
+        return `${h}h${String(m).padStart(2,'0')} aprox.`;
+      }
+
+      const km = coordVeiculo && coordCliente ? distanciaKm(coordVeiculo, coordCliente) : '';
+      const tempoTxt = tempo(km);
+
+      const veiculoMarker = L.circleMarker(coordBase, {
+        radius: 14,
+        color: coordVeiculo ? '#4fc3f7' : '#ffd600',
+        fillColor: coordVeiculo ? '#4fc3f7' : '#ffd600',
+        fillOpacity: .95,
+        weight: 4
+      }).addTo(MAP_BI).bindPopup(`
+        <div class="map-popup-title">${coordVeiculo ? 'Localização do veículo' : 'Cliente final'}</div>
+        <div class="map-popup-line"><b>Placa:</b> ${row.placa || '-'}</div>
+        <div class="map-popup-line"><b>Load:</b> ${row.load || '-'}</div>
+        <div class="map-popup-line"><b>Status:</b> ${row.status || '-'}</div>
+        <div class="map-popup-line"><b>Local:</b> ${coordVeiculo ? localVeiculo : cidadeCliente}</div>
+        <div class="map-popup-line"><b>Cliente:</b> ${row.cliente || '-'}</div>
+        <div class="map-popup-line"><b>Distância:</b> ${km ? km + ' km aprox.' : 'sem cálculo'}</div>
+        <div class="map-popup-line"><b>Tempo:</b> ${tempoTxt}</div>
+      `).openPopup();
+
+      MAP_MARKERS_BI.push(veiculoMarker);
+
+      if (coordVeiculo && coordCliente) {
+        const clienteMarker = L.circleMarker(coordCliente, {
+          radius: 10,
+          color: '#ffd600',
+          fillColor: '#ffd600',
+          fillOpacity: .85,
+          weight: 2
+        }).addTo(MAP_BI);
+
+        const linha = L.polyline([coordVeiculo, coordCliente], {
+          color: '#00c6ff',
+          weight: 3,
+          dashArray: '8,8'
+        }).addTo(MAP_BI);
+
+        MAP_MARKERS_BI.push(clienteMarker, linha);
+      }
+
+      MAP_BI.setView(coordBase, 9);
+
+      if (count) {
+        count.innerHTML = `
+          <div class="map-info-grid">
+            <div class="map-info-item"><div class="map-info-label">Load</div><div class="map-info-value map-info-highlight">${row.load || '-'}</div></div>
+            <div class="map-info-item"><div class="map-info-label">Placa</div><div class="map-info-value">${row.placa || '-'}</div></div>
+            <div class="map-info-item"><div class="map-info-label">Cliente</div><div class="map-info-value">${row.cliente || '-'}</div></div>
+            <div class="map-info-item"><div class="map-info-label">Status</div><div class="map-info-value map-info-yellow">${row.status || '-'}</div></div>
+            <div class="map-info-item"><div class="map-info-label">Localização Atual</div><div class="map-info-value">${localVeiculo || 'Sem posição informada'}</div></div>
+            <div class="map-info-item"><div class="map-info-label">Destino</div><div class="map-info-value">${cidadeCliente || '-'}</div></div>
+            <div class="map-info-item"><div class="map-info-label">Distância</div><div class="map-info-value map-info-green">${km ? km + ' km aprox.' : 'sem cálculo'}</div></div>
+            <div class="map-info-item"><div class="map-info-label">Tempo Estimado</div><div class="map-info-value map-info-yellow">${tempoTxt}</div></div>
+          </div>
+        `;
+      }
+
+      setTimeout(() => MAP_BI.invalidateSize(), 300);
+    }, 500);
+  };
+})();
+</script>
+
+
+<script id="corrigir-composicao-geral-status">
+(function(){
+  function getDadosStatusBI() {
+    if (typeof ALL_ROWS_BI !== 'undefined' && ALL_ROWS_BI.length) return ALL_ROWS_BI;
+    if (typeof atrasoData !== 'undefined' && atrasoData.length) return atrasoData;
+    return [];
+  }
+
+  function statusGroupBI(status) {
+    const s = String(status || '').toUpperCase();
+
+    if (s.includes('ATRASADO')) return 'ATRASADO';
+    if (s.includes('OK') && s.includes('PRAZO')) return 'OK';
+    if (s.includes('EM VIAGEM')) return 'EM VIAGEM';
+    if (s.includes('CLIF')) return 'CLIF';
+    if (s.includes('PENSKE')) return 'PENSKE';
+    if (s.includes('CARREGADO')) return 'CARREGADO';
+    if (s.includes('VERIFICAR')) return 'VERIFICAR';
+
+    return 'OUTROS';
+  }
+
+  function labelGroupBI(group) {
+    const map = {
+      'ATRASADO': 'Atrasados',
+      'OK': 'OK - No Prazo',
+      'EM VIAGEM': 'Em Viagem',
+      'CLIF': 'Na CLIF',
+      'PENSKE': 'Na PENSKE',
+      'CARREGADO': 'Carregado',
+      'VERIFICAR': 'Verificar SMP',
+      'OUTROS': 'Outros'
+    };
+
+    return map[group] || group;
+  }
+
+  function colorGroupBI(group) {
+    const map = {
+      'ATRASADO': 'var(--red)',
+      'OK': 'var(--green)',
+      'EM VIAGEM': 'var(--blue)',
+      'CLIF': 'var(--blue)',
+      'PENSKE': 'var(--orange)',
+      'CARREGADO': 'var(--yellow)',
+      'VERIFICAR': '#607d8b',
+      'OUTROS': 'var(--muted)'
+    };
+
+    return map[group] || 'var(--muted)';
+  }
+
+  function filtrarGrupoStatusBI(group) {
+    if (typeof switchTab === 'function') switchTab('clientes');
+
+    const sel = document.getElementById('filterStatus');
+    if (sel) sel.value = '';
+
+    const data = getDadosStatusBI();
+    const statusDoGrupo = [...new Set(data.filter(d => statusGroupBI(d.status) === group).map(d => d.status).filter(Boolean))];
+
+    window.GRUPO_STATUS_ATIVO_BI = group;
+    window.STATUS_GRUPO_ATIVO_LISTA_BI = statusDoGrupo;
+
+    if (typeof renderTable === 'function') renderTable();
+  }
+
+  window.filtrarGrupoStatusBI = filtrarGrupoStatusBI;
+
+  function atualizarBarraComposicaoBI() {
+    const data = getDadosStatusBI();
+    const total = data.length;
+
+    const groups = {
+      'ATRASADO': 0,
+      'OK': 0,
+      'EM VIAGEM': 0,
+      'CLIF': 0,
+      'PENSKE': 0,
+      'CARREGADO': 0,
+      'VERIFICAR': 0,
+      'OUTROS': 0
+    };
+
+    data.forEach(d => {
+      const g = statusGroupBI(d.status);
+      groups[g] = (groups[g] || 0) + 1;
+    });
+
+    const bar = document.querySelector('.summary-bar');
+    const legend = document.querySelector('.legend-row');
+
+    if (!bar || !legend) return;
+
+    bar.innerHTML = '';
+    legend.innerHTML = '';
+
+    Object.entries(groups)
+      .filter(([g, q]) => q > 0)
+      .forEach(([g, q]) => {
+        const color = colorGroupBI(g);
+        const label = labelGroupBI(g);
+
+        const seg = document.createElement('div');
+        seg.className = 'bar-seg clickable-filter';
+        seg.style.flex = q;
+        seg.style.background = color;
+        seg.textContent = q;
+        seg.title = `${label}: ${q}`;
+        seg.onclick = () => filtrarGrupoStatusBI(g);
+        bar.appendChild(seg);
+
+        const item = document.createElement('div');
+        item.className = 'legend-item clickable-filter';
+        item.onclick = () => filtrarGrupoStatusBI(g);
+        item.innerHTML = `<div class="legend-dot" style="background:${color}"></div>${label} (${q})`;
+        legend.appendChild(item);
+      });
+
+    const label = document.querySelector('.summary-bar-label');
+    if (label) label.textContent = `Composição Geral dos Loads — ${total} loads`;
+
+    const sectionTitle = document.querySelector('#tab-painel .section-title');
+    if (sectionTitle) sectionTitle.textContent = `Distribuição por Status — ${total} Loads monitorados`;
+  }
+
+  const oldUpdateStatusCardsResumoBI = window.updateStatusCards;
+  window.updateStatusCards = function(counts, total) {
+    if (typeof oldUpdateStatusCardsResumoBI === 'function') {
+      oldUpdateStatusCardsResumoBI(counts, total);
+    }
+    setTimeout(atualizarBarraComposicaoBI, 100);
+  };
+
+  const oldRenderResumoBI = window.renderTable;
+  window.renderTable = function() {
+    if (typeof oldRenderResumoBI === 'function') oldRenderResumoBI();
+
+    if (!window.GRUPO_STATUS_ATIVO_BI || !window.STATUS_GRUPO_ATIVO_LISTA_BI) return;
+
+    const data = getDadosStatusBI();
+
+    const fl = (document.getElementById('filterLoad')?.value || '').toLowerCase().trim();
+    const fc = (document.getElementById('filterCliente')?.value || '').toLowerCase();
+    const fci = (document.getElementById('filterCidade')?.value || '').toLowerCase();
+    const fs = document.getElementById('filterStatus')?.value || '';
+    const fi = document.getElementById('filterInicio')?.value || '';
+    const fj = document.getElementById('filterJanela')?.value || '';
+    const fe = document.getElementById('filterEntrega')?.value || '';
+    const ft = document.getElementById('filterTransp')?.value || '';
+
+    let filtered = data.filter(d =>
+      window.STATUS_GRUPO_ATIVO_LISTA_BI.includes(d.status) &&
+      (!fl || String(d.load || '').toLowerCase().includes(fl)) &&
+      (!fc || String(d.cliente || '').toLowerCase().includes(fc)) &&
+      (!fci || String(d.cidade || '').toLowerCase().includes(fci)) &&
+      (!fs || d.status === fs) &&
+      (!fi || onlyDateBI(d.inicio) === fi) &&
+      (!fj || onlyDateBI(d.janela) === fj) &&
+      (!fe || onlyDateBI(d.entrega) === fe) &&
+      (!ft || d.transportadora === ft)
+    );
+
+    if (typeof SORT_FIELD_FINAL !== 'undefined' && SORT_FIELD_FINAL) {
+      filtered = filtered.slice().sort((a,b) => {
+        const va = getSortValueFinal(a, SORT_FIELD_FINAL);
+        const vb = getSortValueFinal(b, SORT_FIELD_FINAL);
+        const result = String(va).localeCompare(String(vb), 'pt-BR', {numeric:true});
+        return SORT_ASC_FINAL ? result : -result;
+      });
+    }
+
+    const body = document.getElementById('tableBody');
+    if (!body) return;
+
+    body.innerHTML = filtered.map(d => {
+      const cfg = typeof statusClassFinal === 'function'
+        ? statusClassFinal(d.status)
+        : (STATUS_CONFIG[d.status] || {cls:'pill-alerta', short:d.status});
+
+      const loc = d.localizacaoVeiculo
+        ? `<span class="location-link" onclick="openVehicleOnMapBI('${String(d.load || '').replace(/'/g, "\\'")}')">${d.localizacaoVeiculo}</span>`
+        : '-';
+
+      return `<tr>
+        <td><span class="load-badge">${d.load || '-'}</span></td>
+        <td><span class="status-pill ${cfg.cls}">${cfg.short || d.status || '-'}</span></td>
+        <td style="font-weight:600;font-size:13px">${d.transportadora || '-'}</td>
+        <td style="font-size:13px">${d.cliente || '-'}</td>
+        <td style="font-weight:600;font-size:13px;color:var(--accent)">${d.cidade || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.inicio || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px">${d.janela || '-'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--yellow)">${d.entrega || '-'}</td>
+        <td style="font-size:13px">${loc}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px">${d.placa || '-'}</td>
+        <td>
+          <span class="distance-click" onclick="openVehicleOnMapBI('${String(d.load || '').replace(/'/g, "\\'")}')">CLIQUE AQUI</span>
+        </td>
+      </tr>`;
+    }).join('');
+
+    const count = document.getElementById('tableCount');
+    if (count) {
+      count.innerHTML = `Exibindo <span>${filtered.length}</span> de <span>${data.length}</span> registros — filtro: <span>${labelGroupBI(window.GRUPO_STATUS_ATIVO_BI)}</span>`;
+    }
+  };
+
+  const oldLimparResumoBI = window.limparFiltrosClientes;
+  window.limparFiltrosClientes = function() {
+    window.GRUPO_STATUS_ATIVO_BI = '';
+    window.STATUS_GRUPO_ATIVO_LISTA_BI = null;
+
+    if (typeof oldLimparResumoBI === 'function') {
+      oldLimparResumoBI();
+    } else if (typeof renderTable === 'function') {
+      renderTable();
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(atualizarBarraComposicaoBI, 800);
+  });
+})();
+</script>
+
+
+<script id="forcar-cidade-uf-tabela">
+(function(){
+  const mapaUFBI = {
+    'GOIANIA':'GO',
+    'GOIÂNIA':'GO',
+    'DUQUE DE CAXIAS':'RJ',
+    'CAMACARI':'BA',
+    'CAMAÇARI':'BA',
+    'RIBEIRAO PRETO':'SP',
+    'RIBEIRÃO PRETO':'SP',
+    'CURITIBA':'PR',
+    'CAJAMAR':'SP',
+    'OSASCO':'SP',
+    'CONTAGEM':'MG',
+    'JUNDIAI':'SP',
+    'JUNDIAÍ':'SP',
+    'LOUVEIRA':'SP',
+    'BIGUACU':'SC',
+    'BIGUAÇU':'SC',
+    'SALTO':'SP',
+    'SERRA':'ES',
+    'LONDRINA':'PR',
+    'CAMPINAS':'SP',
+    'SOROCABA':'SP',
+    'BETIM':'MG',
+    'UBERLANDIA':'MG',
+    'UBERLÂNDIA':'MG'
+  };
+
+  function formatCidadeUFTableBI(txt) {
+    let s = String(txt || '').trim().toUpperCase();
+
+    if (!s) return '-';
+
+    s = s.replace(/\/BRASIL/g, '').trim();
+
+    // já está correto
+    if (/\/[A-Z]{2}$/.test(s)) return s;
+
+    // cidade, estado
+    const m = s.match(/^(.+?),\s*([A-Z]{2})$/);
+    if (m) return `${m[1]}/${m[2]}`;
+
+    // inferência
+    if (mapaUFBI[s]) return `${s}/${mapaUFBI[s]}`;
+
+    return s;
+  }
+
+  const oldRenderCidadeUFBI = window.renderTable;
+
+  window.renderTable = function() {
+    if (typeof oldRenderCidadeUFBI === 'function') {
+      oldRenderCidadeUFBI();
+    }
+
+    document.querySelectorAll('#tableBody tr').forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+
+      // coluna cidade
+      if (tds[4]) {
+        const original = tds[4].textContent.trim();
+        tds[4].textContent = formatCidadeUFTableBI(original);
+      }
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      if (typeof renderTable === 'function') renderTable();
+    }, 600);
+  });
+})();
+</script>
+
+</body>
+</html>
